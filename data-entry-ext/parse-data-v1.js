@@ -8,6 +8,8 @@
 // Chrome web javascript extension parse-data-v1.js
 const FAILED_TO_PARSE = 'FAILED TO PARSE';
 
+var lastFocusedTextareaIdx = 0;
+
 // ============================================================================
 // SECTION 0: TAB MANAGEMENT
 // ============================================================================
@@ -1173,20 +1175,29 @@ function generateTable() {
         const inputMsg = inputGroups[i] ? inputGroups[i].join('\n') : '';
         const outputMsg = outGroups[i] ? outGroups[i].filter(l => l.trim() && !l.includes(FAILED_TO_PARSE)).join('\n') : '';
         const show = !showFailedParsing || outputMsg.includes(FAILED_TO_PARSE);
-
+        // How to set focus on textarea after generating table - set focus on first textarea only
         tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1}</td>
-            <td><textarea class="original-msg" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea></td>
+            <td><textarea class="original-msg" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea></td>
             <td><textarea class="formatted-msg" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea></td></tr>`;
     }
 
     tableHTML += `</tbody></table>`;
     document.getElementById('tableContainer').innerHTML = tableHTML;
 
+    // Get element by attr data-idx and set focus
+    if (lastFocusedTextareaIdx !== null) {
+        const taToFocus = document.querySelector(`.original-msg[data-idx="${lastFocusedTextareaIdx}"]`);
+        if (taToFocus) {
+            //taToFocus.focus();
+        }
+    }
+
     // when changes done in original-msg, update inputData
     const originalMsgTextareas = document.querySelectorAll('.original-msg');
     originalMsgTextareas.forEach((ta, index) => {
         // After input change and focus out, update inputData
         ta.addEventListener("focus", e => {
+            lastFocusedTextareaIdx = index;
             e.target.dataset.oldValue = e.target.value;
         });
 
