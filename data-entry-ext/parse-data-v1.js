@@ -68,6 +68,8 @@ function getMessageGroups() {
 
 function cleanupLine(line) {
     // replace all non a-z and A-Z and 0-9 which is prefix and suffix with empty string
+    if (!line || line === '') return line;
+    console.log('Cleaning line: ' + line);
     return line.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '').trim();
 }
 
@@ -165,6 +167,9 @@ function parseMessages() {
 
             // replace board ''
             const replacements = [
+                "KL",
+                "KERALA",
+                "PM.3",
                 "DR.1",
                 "DIAR",
                 "DEAR 6PM",
@@ -309,6 +314,7 @@ function parseMessages() {
             //line = line.replaceAll('CH', 'SET');
             line = line.replace("ABBCAC", "ALL"); // replace multiple spaces with single space
             line = line.replaceAll('ECH', 'EACH'); // replace multiple spaces with single space
+            line = cleanupLine(line);
             targetRegexMatch = line.match(/\b(?:AB|AC|BC)\b(?:[.,=\s]+\b(?:AB|AC|BC)\b)*/gi)
             if (targetRegexMatch) {
                 matchedVal = targetRegexMatch[0].toUpperCase().replace(/[\.,=\s]+/g, '-');
@@ -353,7 +359,7 @@ function parseMessages() {
             }
 
             // If line matches RS.30 or RS30 or RS 30, replace space and hyphen with empty string
-            const rsMatch = line.match(/^RS[\.\s=\/]*([\d]+)[\s\.]*/i);
+            const rsMatch = line.match(/^RS[\.\s=\/_,]*([\d]+)[\s\.]*/i);
             if (rsMatch) {
                 cleandMsg['amount'] = rsMatch[1];
                 line = line.replace(rsMatch[0], ' ').trim();
@@ -377,7 +383,7 @@ function parseMessages() {
             }
 
             // If rs30 matches with part of line
-            const partRsMatch = line.match(/RS[\.\s\,\-]?(\d+)/);
+            const partRsMatch = line.match(/RS[\s.,-]?(\d+)/);
             if (partRsMatch) {
                 cleandMsg['amount'] = partRsMatch[1];
                 line = cleanupLine(line.replace(partRsMatch[0], ' '));
@@ -419,7 +425,7 @@ function parseMessages() {
             }
 
             // Replace all the non (A-Z and 0-9) {1,} between the valid values to single -
-            line = line.replace(/[^A-Z0-9]+/g, '~').trim();
+            line = cleanupLine(line.replace(/[^A-Z0-9]+/g, '~')).trim();
 
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
             const setMatch = line.match(/^(\d{1,5})[~]+(\d{1,5})(SET|SETS)?$/);
@@ -439,6 +445,21 @@ function parseMessages() {
             const starMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C)~(\d{1,5})~(\d{1,5})~?(SET|SETS|ST|CH|CHANCE|E)?$/);
             if (starMatch) {
                 cleandMsg['data'].push({ target: starMatch[1], number: starMatch[2], qty: starMatch[3] });
+                return;
+            }
+
+            // Check line matches ALL-50set or ALL~50set or ALL~50~SET
+            const targetAndQtyMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C)~?(\d{1,5})~?(SET|SETS|ST|CH|CHANCE|E)$/);
+            if (targetAndQtyMatch) {
+                cleandMsg['target'] = targetAndQtyMatch[1];
+                cleandMsg['qty'] = targetAndQtyMatch[2];
+                return;
+            }
+
+            // Check line matches ALL-50set or ALL~50set or ALL~50~SET
+            const targetAndNumberMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C)~?(\d{1,5})~?$/);
+            if (targetAndNumberMatch) {
+                cleandMsg['data'].push({ target: targetAndNumberMatch[1], number: targetAndNumberMatch[2] });
                 return;
             }
 
@@ -463,7 +484,7 @@ function parseMessages() {
                 return;
             }
             // If matches EACH 10SET
-            const eachMatch = line.replaceAll("~", "").match(/^EACH?(\d{1,5})(SET|SETS|CH|CHANCE)$/);
+            const eachMatch = cleanupLine(line.replaceAll("~", "").match(/^EACH?(\d{1,5})(SET|SETS|CH|CHANCE)$/));
             if (eachMatch) {
                 cleandMsg['qty'] = eachMatch[1];
                 return;
@@ -779,6 +800,33 @@ function parseMessages() {
         var lastQtyUpdatedIndex = 0;
         var isCut = false;
         var lastAmt = '';
+        // Message context
+        var messageContext = {};
+        var lastQtyIndex = -1;
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            if (line['data'] && line['data'].length > 0) {
+                // use javascript set data type
+                line['data'].forEach(d => {
+                    if (d['number']) {
+                        if (!messageContext['datasize']) {
+                            messageContext['datasize'] = [];
+                        }
+                        if (!messageContext['datasize'].includes(d['number'].length)) {
+                            messageContext['datasize'].push(d['number'].length);
+                        }
+                    }
+                })
+            }
+            if (line['qty']) {
+                if (!messageContext['qtyContext']) {
+                    messageContext['qtyContext'] = [];
+                }
+                messageContext['qtyContext'].push({ qty: line['qty'], fromIndex: lastQtyIndex == -1 ? 0 : lastQtyIndex + 1, toIndex: i });
+                lastQtyIndex = i;
+            }
+        }
+
         for (i = 0; i < lines.length; i++) {
             line = lines[i];
             idx = i;
@@ -797,6 +845,54 @@ function parseMessages() {
             if (line['cut']) {
                 isCut = line['cut'];
             }
+            if (messageContext['qtyContext'] && messageContext['qtyContext'].length > 0) {
+                if (messageContext['qtyContext'].length == 1) {
+                    messageQty = messageContext['qtyContext'][0]['qty'];
+                    if (line['data'] && line['data'].length > 0) {
+                        if (line['data'].length == 1) {
+                            d = line['data'][0];
+                            if (!d['qty'] || d['qty'] == '') {
+                                d['qty'] = messageQty;
+                            } else {
+                                lastQty = d['qty'];
+                                d['qty'] = messageQty;
+                                line['data'].push({ number: lastQty, qty: messageQty });
+                            }
+                        } else {
+                            line['data'].forEach((d) => {
+                                if (!d['qty'] || d['qty'] == '') {
+                                    d['qty'] = messageQty;
+                                }
+                            });
+                        }
+                    }
+                } else if (messageContext['qtyContext'].length > 1) {
+                    messageContext['qtyContext'].forEach((qtyCtx) => {
+                        if (idx >= qtyCtx['fromIndex'] && idx <= qtyCtx['toIndex']) {
+                            messageQty = qtyCtx['qty'];
+                            if (line['data'] && line['data'].length > 0) {
+                                if (line['data'].length == 1) {
+                                    d = line['data'][0];
+                                    if (!d['qty'] || d['qty'] == '') {
+                                        d['qty'] = messageQty;
+                                    } else {
+                                        lastQty = d['qty'];
+                                        d['qty'] = messageQty;
+                                        line['data'].push({ number: lastQty, qty: messageQty });
+                                    }
+                                } else {
+                                    line['data'].forEach((d) => {
+                                        if (!d['qty'] || d['qty'] == '') {
+                                            d['qty'] = messageQty;
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            /*
             if (line['qty']) {
                 qty.push(line['qty']);
                 if (idx > 0) {
@@ -814,6 +910,7 @@ function parseMessages() {
                     lastQtyUpdatedIndex = idx + 1;
                 }
             }
+                */
             if (line['target'] && line['target'] != '') {
                 targetValue = line['target'];
 
