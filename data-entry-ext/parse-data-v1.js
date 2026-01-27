@@ -146,7 +146,7 @@ function parseMessages() {
             if (isInfoMessageLine) {
                 line = '';
                 return;
-            } 
+            }
             // If line includes <attached: 00000047-PHOTO-2026-01-21-15-03-02.jpg> get image name
             if (line.includes('<ATTACHED#')) {
                 const imageName = line.match(/<ATTACHED#\s*(.*?)>/);
@@ -802,8 +802,13 @@ function parseMessages() {
                 if (idx > 0) {
                     // sublist
                     lines.slice(lastQtyUpdatedIndex, idx).forEach((subline) => {
-                        if (!subline['qty']) {
+                        if (subline['data'].length == 1) {
+                            origQty = subline['data'][0]['qty'];
                             subline['qty'] = line['qty'];
+                            subline['data'][0]['qty'] = line['qty'];
+                            if (origQty && origQty != '') {
+                                subline['data'].push({ number: origQty, qty: line['qty'] });
+                            }
                         }
                     });
                     lastQtyUpdatedIndex = idx + 1;

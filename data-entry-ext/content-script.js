@@ -257,7 +257,7 @@ function handleInsertData(type, value) {
                     addButton.click();
                 }
 
-                const parts = line.split("-");
+                const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
 
@@ -275,7 +275,7 @@ function handleInsertData(type, value) {
                     addButton.click();
                 }
 
-                const parts = line.split("-");
+                const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
 
