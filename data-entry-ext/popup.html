@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry Extension</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 600px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #222;
+            font-weight: 600;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .status.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #81c784;
+        }
+
+        .status.inactive {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .content {
+            margin-bottom: 16px;
+        }
+
+        .content-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .content-main {
+            flex: 1;
+        }
+
+        .content-side {
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .content p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .sites-list {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+
+        .sites-list p {
+            margin: 0;
+            padding: 4px 0;
+            color: #555;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+
+        button:active {
+            background: #0d47a1;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin: -20px -20px 0 -20px;
+            background: #fafafa;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #fff;
+            color: #333;
+        }
+
+        .tab-btn.active {
+            color: #1976d2;
+            border-bottom-color: #1976d2;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding-top: 16px;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="status" class="status inactive">
+            Not on an allowed website
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="status-tab">Status</button>
+            <button class="tab-btn" data-tab="info-tab">Info</button>
+        </div>
+
+        <!-- Status Tab -->
+        <div id="status-tab" class="tab-content active">
+            <div class="content">
+                <p>This feature will allow you to insert data into the current webpage.</p>
+                <div class="content-row">
+                    <div class="content-main">
+                        <label for="inputAreaField" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">Input Data:</label>
+                        <textarea id="inputAreaField" rows="10" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical;"></textarea>
+                    </div>
+                    <div class="content-side">
+                        <label for="tkt_option" style="display: block; font-size: 13px; font-weight: 600;">Ticket Type:</label>
+                        <select id="tkt_option" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            <option value="select">Select</option>
+                            <option value="1d_tkt">1D Ticket</option>
+                            <option value="2d_tkt">2D Ticket</option>
+                            <option value="3d_tkt">3D Ticket</option>
+                            <option value="3d_box">3D Box</option>
+                            <option value="4d_tkt">4D Ticket</option>
+                            <option value="4d_box">4D Box</option>
+                            <option value="5d_tkt">5D Ticket</option>
+                        </select>
+                        <button id="insertBtn">Insert Data</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Add divider-->
+            <div style="height: 1px; background: #200ee0; margin: 16px 0;"></div>
+            <div class="content">
+                <p>Click the button below to open the data parsing interface in a new window.</p>
+                <button id="parseBtn">Open Parse Data</button>
+            </div>
+        </div>
+
+
+        <!-- Info Tab -->
+        <div id="info-tab" class="tab-content">
+            <div class="content">
+                <p><strong>Allowed Websites:</strong></p>
+                <div class="sites-list">
+                    <p>• orangepblw.com</p>
+                    <p>• rajasree.org</p>
+                    <p>• sameeraa.com</p>
+                    <p>• klpoorna.com</p>
+                    <p>• akshayajackpot.com</p>
+                    <p>• anushuya.com</p>
+                    <p>• abidear.com</p>
+                    <p>• chandhni.com</p>
+                </div>
+                <p>This extension is active on any path of the listed websites.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="popup.js"></script>
+    <script src="content-script.js"></script>
+</body>
+
+</html>

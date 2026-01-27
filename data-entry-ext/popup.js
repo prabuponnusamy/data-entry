@@ -1,0 +1,144 @@
+// Check if current tab is on an allowed website
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize tabs
+    initializeTabs();
+
+    const statusEl = document.getElementById('status');
+    const statusMessage = document.getElementById('statusMessage');
+    const parseBtn = document.getElementById('parseBtn');
+
+    const allowedDomains = [
+        'orangepblw.com',
+        'rajasree.org',
+        'sameeraa.com',
+        'klpoorna.com',
+        'akshayajackpot.com',
+        'anushuya.com',
+        'abidear.com',
+        'chandhni.com'
+    ];
+
+    // Handle Parse Data button
+    if (parseBtn) {
+        parseBtn.addEventListener('click', () => {
+            const parseDataUrl = chrome.runtime.getURL('parse-data.html');
+            chrome.tabs.create({ url: parseDataUrl });
+        });
+    }
+
+    // Handle Insert Data button
+    const insertBtn = document.getElementById('insertBtn');
+    if (insertBtn) {
+        insertBtn.addEventListener('click', async () => {
+            //handleInsertDataBtnClick();
+            const ticketTypeSelect = document.getElementById('tkt_option');
+            const inputTextarea = document.getElementById('inputAreaField');
+
+            const ticketType = ticketTypeSelect.value;
+            const inputData = inputTextarea.value.trim();
+
+            // Validation
+            if (ticketType === 'select') {
+                alert('Please select a ticket type');
+                return;
+            }
+
+            if (!inputData) {
+                alert('Please enter data in the input field');
+                return;
+            }
+
+            // Display the details
+            const ticketTypeLabel = ticketTypeSelect.options[ticketTypeSelect.selectedIndex].text;
+            const details = `Ticket Type: ${ticketTypeLabel}\n\nInput Data:\n${inputData}`;
+
+            console.log('Insert Data Details:', {
+                ticketType: ticketType,
+                ticketTypeLabel: ticketTypeLabel,
+                inputData: inputData
+            });
+
+            // Display in alert (you can replace this with your own UI)
+            //alert(`Successfully captured:\n\n${details}`);
+            const tabId = await getCurrentTabId();
+
+            getCurrentTabId().then(tabId => {
+                console.log("Current Tab ID is:", tabId);
+                chrome.tabs.sendMessage(tabId, {
+                    action: 'insertData',
+                    ticketType: ticketType,
+                    inputData: inputData
+                }, (response) => {
+                    console.log('Response from content script:', response);
+                });
+            });
+
+        });
+    }
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (!tabs[0]) return;
+
+        const currentUrl = tabs[0].url;
+        const url = new URL(currentUrl);
+        const hostname = url.hostname.replace('www.', '');
+
+        const isAllowed = allowedDomains.some(domain =>
+            hostname === domain || hostname.endsWith('.' + domain)
+        );
+
+        if (isAllowed) {
+            statusEl.className = 'status active';
+            statusEl.textContent = '✓ Extension Active';
+        } else {
+            statusEl.className = 'status inactive';
+            statusEl.textContent = '✗ Not on an allowed website';
+        }
+    });
+});
+
+async function getCurrentTabId() {
+    let queryOptions = { active: true, currentWindow: true };
+    // tabs is an array, but since currentWindow: true and active: true, it will have only one entry
+    let [tab] = await chrome.tabs.query(queryOptions);
+    return tab.id;
+}
+
+// Tab switching functionality
+function initializeTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchTab(btn.getAttribute('data-tab'));
+        });
+    });
+}
+
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Deactivate all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+
+    // Activate selected button
+    const selectedBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+    }
+
+    // Save active tab to storage
+    chrome.storage.local.set({ activeTab: tabName });
+}
+

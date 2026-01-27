@@ -1,0 +1,357 @@
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'openExtensionUI') {
+        injectExtensionUI();
+        sendResponse({ success: true });
+    } else if (request.action === 'insertData') {
+        //handleInsertData(request.ticketType, request.inputData, sendResponse);
+        //alert('Insert Data action received in content script' + request.ticketType + ' ' + request.inputData);
+        handleInsertData(request.ticketType, request.inputData);
+        return true; // keep the message channel open for async response
+    } else {
+        // Always respond to avoid closing the port unexpectedly
+        sendResponse({ success: false, error: 'Unknown action' });
+    }
+});
+
+
+
+function injectExtensionUI() {
+    // Check if UI already exists
+    if (document.getElementById('data-entry-extension-container')) {
+        showExtensionUI();
+        return;
+    }
+
+    // Create container
+    const container = document.createElement('div');
+    container.id = 'data-entry-extension-container';
+    container.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  `;
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 24px;
+  `;
+
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  `;
+    closeBtn.onclick = () => container.remove();
+
+    // Create content
+    const content = document.createElement('div');
+    content.innerHTML = `
+    <h2 style="margin: 0 0 16px 0; font-size: 20px; color: #222;">Data Entry Extension</h2>
+    <p style="color: #666; font-size: 14px; margin: 0 0 16px 0;">Extension is active on this website.</p>
+    <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; font-size: 12px; color: #555;">
+      Ready for data entry operations.
+    </div>
+  `;
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(content);
+    container.appendChild(modal);
+    document.body.appendChild(container);
+}
+
+function showExtensionUI() {
+    const container = document.getElementById('data-entry-extension-container');
+    if (container) {
+        container.style.display = 'flex';
+    }
+}
+
+function lastInputByName(name) {
+    const list = document.getElementsByName(name);
+    return list.length ? list[list.length - 1] : null;
+}
+
+function setLastValue(name, value) {
+    const el = lastInputByName(name);
+    if (el) el.value = value;
+}
+
+/**
+ * Handle Insert Data from popup
+ * Processes ticket type and input data
+ */
+function handleInsertData(type, value) {
+    try {
+        console.log('Processing Insert Data:', { type, value });
+
+        // Validate inputs
+        if (!type || type === 'select') {
+            sendResponse({ success: false, error: 'Invalid ticket type' });
+            return;
+        }
+
+        if (!value || value.trim() === '') {
+            sendResponse({ success: false, error: 'Empty input data' });
+            return;
+        }
+
+        // Parse input data (lines separated by newlines)
+        const lines = value.trim().split('\n').filter(line => line.trim());
+
+        if (lines.length === 0) {
+            sendResponse({ success: false, error: 'No valid data lines found' });
+            return;
+        }
+
+        // 1D field names
+        const aFieldName = "a[]";
+        const bFieldName = "b[]";
+        const cFieldName = "c[]";
+        const aQtyFieldName = "a_qty[]";
+        const bQtyFieldName = "b_qty[]";
+        const cQtyFieldName = "c_qty[]";
+
+        var abFieldName = "ab[]";
+        var bcFieldName = "bc[]";
+        var acFieldName = "ac[]";
+        var abQtyFieldName = "ab_qty[]";
+        var acQtyFieldName = "ac_qty[]";
+        var bcQtyFieldName = "bc_qty[]";
+
+        // 3D Tkt, 3D Box, 4D Tkt, 4D Box
+        var abcFieldName = "abc[]";
+        var abcQtyFieldName = "abc_qty[]";
+
+        // 5D Tkt
+        var abcdeFieldName = "abcde[]";
+        var abcdeQtyFieldName = "abcde_qty[]";
+
+        const addButton = document.querySelector('.add_field_button');
+
+
+        if (type === "1d_tkt") {
+            let first = true;
+
+            value.split("\n").forEach(line => {
+                if (first) {
+                    first = false;
+                } else {
+                    addButton.click();
+                }
+
+                const parts = line.split(",");
+                const num = parts[0];
+                const qty = parts[1];
+                const targets = parts[2].toUpperCase().split("-");
+
+                if (targets.includes("A")) {
+                    setLastValue(aFieldName, num);
+                    setLastValue(aQtyFieldName, qty);
+
+                } else if (targets.includes("B")) {
+                    setLastValue(bFieldName, num);
+                    setLastValue(bQtyFieldName, qty);
+
+                } else if (targets.includes("C")) {
+                    setLastValue(cFieldName, num);
+                    setLastValue(cQtyFieldName, qty);
+
+                } else if (targets.includes("ALL")) {
+                    setLastValue(aFieldName, num);
+                    setLastValue(aQtyFieldName, qty);
+
+                    setLastValue(bFieldName, num);
+                    setLastValue(bQtyFieldName, qty);
+
+                    setLastValue(cFieldName, num);
+                    setLastValue(cQtyFieldName, qty);
+                    return;
+                }
+            });
+
+        } else if (type === "2d_tkt") {
+            let first = true;
+
+            value.split("\n").forEach(line => {
+                if (first) {
+                    first = false;
+                } else {
+                    addButton.click();
+                }
+
+                const parts = line.split(",");
+                const num = parts[0];
+                const qty = parts[1];
+                const targets = parts[2].toUpperCase().split("-");
+
+                if (targets.includes("AB")) {
+                    setLastValue(abFieldName, num);
+                    setLastValue(abQtyFieldName, qty);
+
+                } else if (targets.includes("BC")) {
+                    setLastValue(bcFieldName, num);
+                    setLastValue(bcQtyFieldName, qty);
+
+                } else if (targets.includes("AC")) {
+                    setLastValue(acFieldName, num);
+                    setLastValue(acQtyFieldName, qty);
+
+                } else if (targets.includes("ALL")) {
+                    setLastValue(abFieldName, num);
+                    setLastValue(abQtyFieldName, qty);
+
+                    setLastValue(bcFieldName, num);
+                    setLastValue(bcQtyFieldName, qty);
+
+                    setLastValue(acFieldName, num);
+                    setLastValue(acQtyFieldName, qty);
+                    return;
+                }
+            });
+
+        } else if (
+            type === "3d_box" ||
+            type === "3d_tkt" ||
+            type === "4d_box" ||
+            type === "4d_tkt"
+        ) {
+            let first = true;
+
+            value.split("\n").forEach(line => {
+                if (first) {
+                    first = false;
+                } else {
+                    addButton.click();
+                }
+
+                const parts = line.split("-");
+                const num = parts[0];
+                const qty = parts[1];
+
+                setLastValue(abcFieldName, num);
+                setLastValue(abcQtyFieldName, qty);
+            });
+
+        } else if (type === "5d_tkt") {
+            let first = true;
+
+            value.split("\n").forEach((line, index) => {
+                if (first) {
+                    first = false;
+                } else {
+                    addButton.click();
+                }
+
+                const parts = line.split("-");
+                const num = parts[0];
+                const qty = parts[1];
+
+                const nums = document.getElementsByName(abcdeFieldName);
+                const qtys = document.getElementsByName(abcdeQtyFieldName);
+
+                if (nums[index]) nums[index].value = num.trim();
+                if (qtys[index]) qtys[index].value = qty;
+            });
+        }
+
+
+    } catch (error) {
+        console.error('Error handling insert data:', error);
+    }
+}
+
+/**
+ * Display success message when data is inserted
+ */
+function displayInsertDataSuccess(ticketTypeLabel, lineCount) {
+    // Check if notification already exists
+    let notification = document.getElementById('data-entry-notification');
+    if (notification) {
+        notification.remove();
+    }
+
+    // Create notification element
+    notification = document.createElement('div');
+    notification.id = 'data-entry-notification';
+    notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4caf50;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+    animation: slideIn 0.3s ease-in-out;
+  `;
+
+    notification.innerHTML = `
+    <strong>✓ Data Inserted Successfully</strong><br>
+    <span style="font-size: 12px;">Type: ${ticketTypeLabel} | Lines: ${lineCount}</span>
+  `;
+
+    document.body.appendChild(notification);
+
+    // Add animation styles if not already present
+    if (!document.getElementById('data-entry-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'data-entry-animation-style';
+        style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+        document.head.appendChild(style);
+    }
+
+    // Auto-remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease-in-out reverse';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+console.log('Data Entry Extension content script loaded');

@@ -1,0 +1,108 @@
+/* Data Entry Extension Styles */
+
+:root {
+  --primary-color: #1976d2;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --border-color: #e5e5e5;
+  --background-light: #f5f5f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#data-entry-extension-container {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+#data-entry-extension-content {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+#data-entry-extension-content h1,
+#data-entry-extension-content h2,
+#data-entry-extension-content h3 {
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+#data-entry-extension-content h1 {
+  font-size: 24px;
+  margin-top: 0;
+}
+
+#data-entry-extension-content h2 {
+  font-size: 18px;
+}
+
+#data-entry-extension-content button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#data-entry-extension-content button:hover {
+  background: #1565c0;
+}
+
+#data-entry-extension-content button:active {
+  background: #0d47a1;
+}
+
+#data-entry-extension-content button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+#data-entry-extension-content input,
+#data-entry-extension-content textarea,
+#data-entry-extension-content select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+#data-entry-extension-content input:focus,
+#data-entry-extension-content textarea:focus,
+#data-entry-extension-content select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+#data-entry-extension-content label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+#data-entry-extension-content .form-group {
+  margin-bottom: 16px;
+}
+
+#data-entry-extension-content .form-group:last-child {
+  margin-bottom: 0;
+}

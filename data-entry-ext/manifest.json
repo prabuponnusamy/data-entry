@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Data Entry Extension",
+  "version": "1.0.0",
+  "description": "Data entry and verification extension for authorized websites",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://orangepblw.com/*",
+    "https://rajasree.org/*",
+    "https://sameeraa.com/*",
+    "https://klpoorna.com/*",
+    "https://akshayajackpot.com/*",
+    "https://anushuya.com/*",
+    "https://abidear.com/*",
+    "https://chandhni.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Data Entry"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://orangepblw.com/*",
+        "https://rajasree.org/*",
+        "https://sameeraa.com/*",
+        "https://klpoorna.com/*",
+        "https://akshayajackpot.com/*",
+        "https://anushuya.com/*",
+        "https://abidear.com/*",
+        "https://chandhni.com/*"
+      ],
+      "js": ["content-script.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  }
+}
