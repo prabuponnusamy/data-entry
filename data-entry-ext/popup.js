@@ -28,15 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Insert Data button
     const insertBtn = document.getElementById('insertBtn');
+    const clearBtn = document.getElementById('clearBtn');
     if (insertBtn) {
         insertBtn.addEventListener('click', async () => {
             //handleInsertDataBtnClick();
             const ticketTypeSelect = document.getElementById('tkt_option');
             const inputTextarea = document.getElementById('inputAreaField');
+            const quantityField = document.getElementById('qty_option');
+            const scriptVersionField = document.getElementById('script_version');
+            const target1D2DField = document.getElementById('1D2D_target');
 
             const ticketType = ticketTypeSelect.value;
             const inputData = inputTextarea.value.trim();
-
+            const quantity = parseInt(quantityField.value) || 1;
+            const scriptVersion = scriptVersionField.value;
+            const target1D2D = target1D2DField.value;
             // Validation
             if (ticketType === 'select') {
                 alert('Please select a ticket type');
@@ -50,12 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Display the details
             const ticketTypeLabel = ticketTypeSelect.options[ticketTypeSelect.selectedIndex].text;
-            const details = `Ticket Type: ${ticketTypeLabel}\n\nInput Data:\n${inputData}`;
+            const details = `Ticket Type: ${ticketTypeLabel}\n\nInput Data:\n${inputData}\n\nQuantity: ${quantity}\nEntry Type: ${scriptVersion}`;
 
             console.log('Insert Data Details:', {
                 ticketType: ticketType,
                 ticketTypeLabel: ticketTypeLabel,
-                inputData: inputData
+                inputData: inputData,
+                quantity: quantity,
+                scriptVersion: scriptVersion,
+                target1D2D: target1D2D
             });
 
             // Display in alert (you can replace this with your own UI)
@@ -67,12 +76,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 chrome.tabs.sendMessage(tabId, {
                     action: 'insertData',
                     ticketType: ticketType,
-                    inputData: inputData
+                    inputData: inputData,
+                    quantity: quantity,
+                    scriptVersion: scriptVersion,
+                    target1D2D: target1D2D
                 }, (response) => {
                     console.log('Response from content script:', response);
                 });
             });
 
+        });
+    }
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            const tabId = await getCurrentTabId();
+            getCurrentTabId().then(tabId => {
+                console.log("Current Tab ID is:", tabId);
+                chrome.tabs.sendMessage(tabId, {
+                    action: 'clearData'
+                }, (response) => {
+                    console.log('Response from content script:', response);
+                });
+            });
         });
     }
 
