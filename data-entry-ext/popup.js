@@ -28,15 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Insert Data button
     const insertBtn = document.getElementById('insertBtn');
+    const clearBtn = document.getElementById('clearBtn');
     if (insertBtn) {
         insertBtn.addEventListener('click', async () => {
             //handleInsertDataBtnClick();
             const ticketTypeSelect = document.getElementById('tkt_option');
             const inputTextarea = document.getElementById('inputAreaField');
+            const quantityField = document.getElementById('qty_option');
+            const scriptVersionField = document.getElementById('script_version');
+            const target1D2DField = document.getElementById('1D2D_target');
 
             const ticketType = ticketTypeSelect.value;
             const inputData = inputTextarea.value.trim();
-
+            const quantity = parseInt(quantityField.value) || 1;
+            const scriptVersion = scriptVersionField.value;
+            const target1D2D = target1D2DField.value;
             // Validation
             if (ticketType === 'select') {
                 alert('Please select a ticket type');
@@ -50,29 +56,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Display the details
             const ticketTypeLabel = ticketTypeSelect.options[ticketTypeSelect.selectedIndex].text;
-            const details = `Ticket Type: ${ticketTypeLabel}\n\nInput Data:\n${inputData}`;
+            const details = `Ticket Type: ${ticketTypeLabel}\n\nInput Data:\n${inputData}\n\nQuantity: ${quantity}\nEntry Type: ${scriptVersion}`;
 
             console.log('Insert Data Details:', {
                 ticketType: ticketType,
                 ticketTypeLabel: ticketTypeLabel,
-                inputData: inputData
+                inputData: inputData,
+                quantity: quantity,
+                scriptVersion: scriptVersion,
+                target1D2D: target1D2D
             });
 
             // Display in alert (you can replace this with your own UI)
-            //alert(`Successfully captured:\n\n${details}`);
-            const tabId = await getCurrentTabId();
 
-            getCurrentTabId().then(tabId => {
-                console.log("Current Tab ID is:", tabId);
-                chrome.tabs.sendMessage(tabId, {
+            getCurrentTab().then(tab => {
+                console.log("Current Tab ID is:", tab.id);
+                chrome.tabs.sendMessage(tab.id, {
                     action: 'insertData',
                     ticketType: ticketType,
-                    inputData: inputData
+                    inputData: inputData,
+                    quantity: quantity,
+                    scriptVersion: scriptVersion,
+                    target1D2D: target1D2D
                 }, (response) => {
                     console.log('Response from content script:', response);
                 });
             });
 
+        });
+    }
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            const tab = await getCurrentTab();
+            getCurrentTab().then(tab => {
+                console.log("Current Tab ID is:", tab.id);
+                chrome.tabs.sendMessage(tab.id, {
+                    action: 'clearData'
+                }, (response) => {
+                    console.log('Response from content script:', response);
+                });
+            });
         });
     }
 
@@ -94,14 +117,36 @@ document.addEventListener('DOMContentLoaded', () => {
             statusEl.className = 'status inactive';
             statusEl.textContent = '✗ Not on an allowed website';
         }
+
+        // set default ticket type based on last part of url
+        
+        tktOptionDefault = '1d_tkt';
+        if (currentUrl.includes('/2dticket')) {
+            tktOptionDefault = '2d_tkt';
+        } else if (currentUrl.endsWith('/3dticket')) {
+            tktOptionDefault = '3d_tkt';
+        } else if (currentUrl.endsWith('/3dbox')) {
+            tktOptionDefault = '3d_box';
+        } else if (currentUrl.endsWith('/4dticket')) {
+            tktOptionDefault = '4d_tkt';
+        } else if (currentUrl.endsWith('/4dbox')) {
+            tktOptionDefault = '4d_box';
+        } else if (currentUrl.endsWith('/5dticket')) {
+            tktOptionDefault = '5d_tkt';
+        }
+        const ticketTypeSelect = document.getElementById('tkt_option');
+        if (ticketTypeSelect) {
+            ticketTypeSelect.value = tktOptionDefault;
+        }
     });
 });
 
-async function getCurrentTabId() {
+async function getCurrentTab() {
     let queryOptions = { active: true, currentWindow: true };
+    // Get current tab url
     // tabs is an array, but since currentWindow: true and active: true, it will have only one entry
     let [tab] = await chrome.tabs.query(queryOptions);
-    return tab.id;
+    return tab;
 }
 
 // Tab switching functionality

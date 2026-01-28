@@ -1306,7 +1306,7 @@ function renderFinalOutput(messageGroup, message) {
             table += `</tr><tr>`;
         }
         // create new text area 
-        table += `<td><h3>${key} - ${values.length} entries</h3><button class="copy-btn" onclick="copyTextarea(this)" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button><textarea class="output-textarea" placeholder="Formatted output..." rows="${values.length ? (values.length > 30 ? 30 : values.length + 1) : 1}">${output}</textarea></td>`;
+        table += `<td><h3>${key}</h3><button class="copy-btn" onclick="copyTextarea(this)" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button><textarea class="output-textarea" placeholder="Formatted output..." rows="${values.length ? (values.length > 30 ? 30 : values.length + 1) : 1}">${output}</textarea></td>`;
         // Append to finalOutputContent div
         output = '';
     });
@@ -1336,12 +1336,11 @@ function generateFinalOutput() {
     label = 'First';
 
     errorMessages = [];
-    var totalRecords = 0;
+
     formattedMessages.forEach((textarea, index) => {
         const content = textarea.value.trim();
         // split content by new line and store
         values = content.split('\n').filter(line => line.replaceAll('"', '').trim() !== '');
-        totalRecords += values.length;
         values.forEach(line => {
             valueSplits = line.split(',');
             // when value 1 is not number
@@ -1415,11 +1414,9 @@ function generateFinalOutput() {
     });
     renderFinalOutput(messageGroup, label);
     if (errorMessages.length > 0) {
-        // Add total records as first message
-        errorMessages.unshift('Total records: ' + totalRecords + '. Please fix the following errors:');
         showErrorMessages(errorMessages);
     } else {
-        showSuccessMessages(['Total records: ' + totalRecords + '. Final output generated successfully!']);
+        showSuccessMessages(['Final output generated successfully!']);
     }
 }
 

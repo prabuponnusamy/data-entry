@@ -1,3 +1,27 @@
+
+
+// 1D field names
+const aFieldName = "a[]";
+const bFieldName = "b[]";
+const cFieldName = "c[]";
+const aQtyFieldName = "a_qty[]";
+const bQtyFieldName = "b_qty[]";
+const cQtyFieldName = "c_qty[]";
+
+var abFieldName = "ab[]";
+var bcFieldName = "bc[]";
+var acFieldName = "ac[]";
+var abQtyFieldName = "ab_qty[]";
+var acQtyFieldName = "ac_qty[]";
+var bcQtyFieldName = "bc_qty[]";
+
+// 3D Tkt, 3D Box, 4D Tkt, 4D Box
+var abcFieldName = "abc[]";
+var abcQtyFieldName = "abc_qty[]";
+
+// 5D Tkt
+var abcdeFieldName = "abcde[]";
+var abcdeQtyFieldName = "abcde_qty[]";
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'openExtensionUI') {
@@ -6,14 +30,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === 'insertData') {
         //handleInsertData(request.ticketType, request.inputData, sendResponse);
         //alert('Insert Data action received in content script' + request.ticketType + ' ' + request.inputData);
-        handleInsertData(request.ticketType, request.inputData);
+        handleInsertData(request.ticketType, request.inputData, request.quantity, request.scriptVersion, request.target1D2D);
+        return true; // keep the message channel open for async response
+    } else if (request.action === 'clearData') {
+        //handleInsertData(request.ticketType, request.inputData, sendResponse);
+        //alert('Insert Data action received in content script' + request.ticketType + ' ' + request.inputData);
+        handleClearData();
         return true; // keep the message channel open for async response
     } else {
         // Always respond to avoid closing the port unexpectedly
         sendResponse({ success: false, error: 'Unknown action' });
     }
 });
-
 
 
 function injectExtensionUI() {
@@ -109,13 +137,26 @@ function setLastValue(name, value) {
     if (el) el.value = value;
 }
 
+function handleClearData() {
+    try {
+        console.log('Processing Clear Data');
+        const clearButtons = document.querySelectorAll('.remove_field');
+        clearButtons.forEach(btn => btn.click());
+        // take all input fields and clear their values
+        const inputFields = document.querySelectorAll('input[type="text"], input[type="number"]');
+        // name matching in const field names
+    } catch (error) {
+        console.error('Error handling clear data:', error);
+    }
+}
+
 /**
  * Handle Insert Data from popup
  * Processes ticket type and input data
  */
-function handleInsertData(type, value) {
+function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
     try {
-        console.log('Processing Insert Data:', { type, value });
+        console.log('Processing Insert Data:', { type, value, quantity, scriptVersion, target1D2D });
 
         // Validate inputs
         if (!type || type === 'select') {
@@ -136,42 +177,45 @@ function handleInsertData(type, value) {
             return;
         }
 
-        // 1D field names
-        const aFieldName = "a[]";
-        const bFieldName = "b[]";
-        const cFieldName = "c[]";
-        const aQtyFieldName = "a_qty[]";
-        const bQtyFieldName = "b_qty[]";
-        const cQtyFieldName = "c_qty[]";
-
-        var abFieldName = "ab[]";
-        var bcFieldName = "bc[]";
-        var acFieldName = "ac[]";
-        var abQtyFieldName = "ab_qty[]";
-        var acQtyFieldName = "ac_qty[]";
-        var bcQtyFieldName = "bc_qty[]";
-
-        // 3D Tkt, 3D Box, 4D Tkt, 4D Box
-        var abcFieldName = "abc[]";
-        var abcQtyFieldName = "abc_qty[]";
-
-        // 5D Tkt
-        var abcdeFieldName = "abcde[]";
-        var abcdeQtyFieldName = "abcde_qty[]";
 
         const addButton = document.querySelector('.add_field_button');
-
+        valuesToInsert = [];
+        if (scriptVersion == '2024') {
+            // For PDF version, adjust field names if necessary
+            value.split(/[-\s\n,.\/]/).forEach(function (val, index) {
+                var formatted = parseInt(val.trim());
+                if (val.trim().length > 0 && !isNaN(formatted)) {
+                    valuesToInsert.push([val.trim(), quantity, target1D2D].join(","));
+                }
+            });
+        } else if (scriptVersion == 'PDF') {
+            value.split(/[\s\n,.]+/).forEach(function (token) {
+                const trimmed = (token || '').trim();
+                //const parsed = parseInt(trimmed, 10);
+                noAndQty = trimmed.split(/[-=*/]+/);
+                const parsed = parseInt(noAndQty[0], 10);
+                const qtyParsed = noAndQty[1] ? parseInt(noAndQty[1], 10) : null;
+                if (trimmed.length > 0 && !isNaN(parsed) && qtyParsed !== null) {
+                    //alert("Value to insert: " + noAndQty[0] + ", Qty: " + qtyParsed);
+                    valuesToInsert.push([noAndQty[0], qtyParsed, target1D2D].join(","));
+                } else {
+                    alert("Invalid entry skipped: " + trimmed);
+                    console.log("Invalid entry skipped: " + trimmed);
+                }
+            });
+        } else {
+            valuesToInsert = value.split("\n");
+        }
 
         if (type === "1d_tkt") {
             let first = true;
 
-            value.split("\n").forEach(line => {
+            valuesToInsert.forEach(line => {
                 if (first) {
                     first = false;
                 } else {
                     addButton.click();
                 }
-
                 const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
@@ -205,7 +249,7 @@ function handleInsertData(type, value) {
         } else if (type === "2d_tkt") {
             let first = true;
 
-            value.split("\n").forEach(line => {
+            valuesToInsert.forEach(line => {
                 if (first) {
                     first = false;
                 } else {
@@ -250,14 +294,14 @@ function handleInsertData(type, value) {
         ) {
             let first = true;
 
-            value.split("\n").forEach(line => {
+            valuesToInsert.forEach(line => {
                 if (first) {
                     first = false;
                 } else {
                     addButton.click();
                 }
 
-                const parts = line.split("-");
+                const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
 
@@ -268,14 +312,14 @@ function handleInsertData(type, value) {
         } else if (type === "5d_tkt") {
             let first = true;
 
-            value.split("\n").forEach((line, index) => {
+            valuesToInsert.forEach((line, index) => {
                 if (first) {
                     first = false;
                 } else {
                     addButton.click();
                 }
 
-                const parts = line.split("-");
+                const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
 
@@ -286,8 +330,6 @@ function handleInsertData(type, value) {
                 if (qtys[index]) qtys[index].value = qty;
             });
         }
-
-
     } catch (error) {
         console.error('Error handling insert data:', error);
     }
