@@ -1,3 +1,27 @@
+
+
+// 1D field names
+const aFieldName = "a[]";
+const bFieldName = "b[]";
+const cFieldName = "c[]";
+const aQtyFieldName = "a_qty[]";
+const bQtyFieldName = "b_qty[]";
+const cQtyFieldName = "c_qty[]";
+
+var abFieldName = "ab[]";
+var bcFieldName = "bc[]";
+var acFieldName = "ac[]";
+var abQtyFieldName = "ab_qty[]";
+var acQtyFieldName = "ac_qty[]";
+var bcQtyFieldName = "bc_qty[]";
+
+// 3D Tkt, 3D Box, 4D Tkt, 4D Box
+var abcFieldName = "abc[]";
+var abcQtyFieldName = "abc_qty[]";
+
+// 5D Tkt
+var abcdeFieldName = "abcde[]";
+var abcdeQtyFieldName = "abcde_qty[]";
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'openExtensionUI') {
@@ -18,7 +42,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: false, error: 'Unknown action' });
     }
 });
-
 
 
 function injectExtensionUI() {
@@ -119,6 +142,9 @@ function handleClearData() {
         console.log('Processing Clear Data');
         const clearButtons = document.querySelectorAll('.remove_field');
         clearButtons.forEach(btn => btn.click());
+        // take all input fields and clear their values
+        const inputFields = document.querySelectorAll('input[type="text"], input[type="number"]');
+        // name matching in const field names
     } catch (error) {
         console.error('Error handling clear data:', error);
     }
@@ -151,28 +177,6 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
             return;
         }
 
-        // 1D field names
-        const aFieldName = "a[]";
-        const bFieldName = "b[]";
-        const cFieldName = "c[]";
-        const aQtyFieldName = "a_qty[]";
-        const bQtyFieldName = "b_qty[]";
-        const cQtyFieldName = "c_qty[]";
-
-        var abFieldName = "ab[]";
-        var bcFieldName = "bc[]";
-        var acFieldName = "ac[]";
-        var abQtyFieldName = "ab_qty[]";
-        var acQtyFieldName = "ac_qty[]";
-        var bcQtyFieldName = "bc_qty[]";
-
-        // 3D Tkt, 3D Box, 4D Tkt, 4D Box
-        var abcFieldName = "abc[]";
-        var abcQtyFieldName = "abc_qty[]";
-
-        // 5D Tkt
-        var abcdeFieldName = "abcde[]";
-        var abcdeQtyFieldName = "abcde_qty[]";
 
         const addButton = document.querySelector('.add_field_button');
         valuesToInsert = [];
@@ -186,19 +190,19 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
             });
         } else if (scriptVersion == 'PDF') {
             value.split(/[\s\n,.]+/).forEach(function (token) {
-                    const trimmed = (token || '').trim();
-                    //const parsed = parseInt(trimmed, 10);
-                    noAndQty = trimmed.split(/[-=*/]+/);
-                    const parsed = parseInt(noAndQty[0], 10);
-                    const qtyParsed = noAndQty[1] ? parseInt(noAndQty[1], 10) : null;
-                    if (trimmed.length > 0 && !isNaN(parsed) && qtyParsed !== null) {
-                        //alert("Value to insert: " + noAndQty[0] + ", Qty: " + qtyParsed);
-                        valuesToInsert.push([noAndQty[0], qtyParsed, target1D2D].join(","));
-                    } else {
-                        alert("Invalid entry skipped: " + trimmed);
-                        console.log("Invalid entry skipped: " + trimmed);
-                    }
-                });
+                const trimmed = (token || '').trim();
+                //const parsed = parseInt(trimmed, 10);
+                noAndQty = trimmed.split(/[-=*/]+/);
+                const parsed = parseInt(noAndQty[0], 10);
+                const qtyParsed = noAndQty[1] ? parseInt(noAndQty[1], 10) : null;
+                if (trimmed.length > 0 && !isNaN(parsed) && qtyParsed !== null) {
+                    //alert("Value to insert: " + noAndQty[0] + ", Qty: " + qtyParsed);
+                    valuesToInsert.push([noAndQty[0], qtyParsed, target1D2D].join(","));
+                } else {
+                    alert("Invalid entry skipped: " + trimmed);
+                    console.log("Invalid entry skipped: " + trimmed);
+                }
+            });
         } else {
             valuesToInsert = value.split("\n");
         }
