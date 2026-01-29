@@ -1293,22 +1293,27 @@ function renderFinalOutput(messageGroup, message) {
     // Create table and insert textarea into table column - print lines of table
     var table = `<h3>${message}</h3><img src="${message.replace('attachment:', '')}" alt="${message}" style="max-width: 200px; margin-top: 10px;"><table>
             <tbody><tr>`;
+    var idx = 0;
+    var allowedListSize = 40;
     sortedKeys.forEach(function (key, index) {
         const values = messageGroup[key];
         let output = '';
-        // Print key as header
-        // print the values of that key in new lines in text area in finalOutputContent
-        //output = key + '\n';
-        values.forEach(value => {
-            output += value + '\n';
-        });
-        if (index % 6 === 0 && index !== 0) {
-            table += `</tr><tr>`;
+        var lists = [];
+        for (var slIdx = 0; slIdx < values.length; slIdx += allowedListSize) {
+            lists.push(values.slice(slIdx, slIdx + allowedListSize));
         }
-        // create new text area 
-        table += `<td><h3>${key} - ${values.length} entries</h3><button class="copy-btn" onclick="copyTextarea(this)" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button><textarea class="output-textarea" placeholder="Formatted output..." rows="${values.length ? (values.length > 30 ? 30 : values.length + 1) : 1}">${output}</textarea></td>`;
-        // Append to finalOutputContent div
-        output = '';
+        lists.forEach((sublist, sublistIdx) => {
+            idx++;
+            if (idx % 6 === 0 && idx !== 0) {
+                table += `</tr><tr>`;
+            }
+            // create new text area 
+            table += `<td>
+                    <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
+                    <button class="copy-btn" onclick="copyTextarea(this)" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button>
+                    <textarea class="output-textarea" placeholder="Formatted output..." rows="${values.length ? (values.length > 30 ? 30 : values.length + 1) : 1}">${sublist.join('\n')}</textarea>
+                    </td>`;
+        });
     });
     table += `</tr></tbody></table>`;
     // Append to finalOutputContent div
