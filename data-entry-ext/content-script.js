@@ -132,9 +132,28 @@ function lastInputByName(name) {
     return list.length ? list[list.length - 1] : null;
 }
 
+function getLastInputIndex(name) {
+    const list = document.getElementsByName(name);
+    return list.length ? list.length - 1 : -1;
+}
+
 function setLastValue(name, value) {
     const el = lastInputByName(name);
-    if (el) el.value = value;
+    if (el) { 
+        // If value is already present alert and return error
+        if (el.value && el.value.trim() !== '') {
+            console.warn(`Field ${name} already has value: ${el.value}`);
+            alert(`Field ${name} already has value: ${el.value}`);
+            // return error;
+            throw new Error(`Field ${name} already has value: ${el.value}`);
+        }
+        el.value = value;
+    } else {
+        console.warn(`No input found with name: ${name}`);
+        alert(`No input found with name: ${name}`);
+        // return error;
+        throw new Error(`No input found with name: ${name}`);
+    }
 }
 
 function handleClearData() {
