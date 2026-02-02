@@ -71,8 +71,13 @@ function getMessageGroups() {
 function cleanupLine(line) {
     // replace all non a-z and A-Z and 0-9 which is prefix and suffix with empty string
     if (!line || line === '') return line;
-    console.log('Cleaning line: ' + line);
-    return line.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '').trim();
+    try {
+        line = line.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '').trim();
+    } catch (e) {
+        console.error(e);
+        // Handle any errors that might occur during replacement
+    }
+    return line;
 }
 
 function parseMessages() {
@@ -198,6 +203,9 @@ function parseMessages() {
                 "3.PM",
                 "3 PM",
                 "6.PM",
+                "3-00 PM",
+                "3.00 PM",
+                "3•00 PM",
                 "3PM",
                 "DEAR",
                 "BOARD",
@@ -486,7 +494,7 @@ function parseMessages() {
                 return;
             }
             // If matches EACH 10SET
-            const eachMatch = cleanupLine(line.replaceAll("~", "").match(/^EACH?(\d{1,5})(SET|SETS|CH|CHANCE)$/));
+            const eachMatch = line.replaceAll("~", "").match(/^EACH?(\d{1,5})(SET|SETS|CH|CHANCE)$/);
             if (eachMatch) {
                 cleandMsg['qty'] = eachMatch[1];
                 return;
@@ -1374,33 +1382,75 @@ function generateFinalOutput() {
             switch (valueSplits[0].charAt(0)) {
                 case '1':
                     if (valueSplits[1].length != 1) {
-                        errorMessages.push('1D Ticket number length should be 1 digit only: ' + valueSplits[1]);
+                        errorMessages.push('1D Ticket number length should be 1 digit only: ' + valueSplits[1] + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     if (valueSplits[4] == '') {
-                        errorMessages.push('Target (Last value) must not be empty for: ' + line);
+                        errorMessages.push('Target (Last value) must not be empty for: ' + line + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     break;
                 case '2':
                     if (valueSplits[1].length != 2) {
-                        errorMessages.push('2D Ticket number length should be 2 digits only: ' + valueSplits[1]);
+                        errorMessages.push('2D Ticket number length should be 2 digits only: ' + valueSplits[1] + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     if (valueSplits[4] == '') {
-                        errorMessages.push('Target (Last value) must not be empty for: ' + line);
+                        errorMessages.push('Target (Last value) must not be empty for: ' + line + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     break;
                 case '3':
                     if (valueSplits[1].length != 3) {
-                        errorMessages.push('3D Ticket number length should be 3 digits only: ' + valueSplits[1]);
+                        errorMessages.push('3D Ticket number length should be 3 digits only: ' + valueSplits[1] + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     break;
                 case '4':
                     if (valueSplits[1].length != 4) {
-                        errorMessages.push('4D Ticket number length should be 4 digits only: ' + valueSplits[1]);
+                        errorMessages.push('4D Ticket number length should be 4 digits only: ' + valueSplits[1] + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     break;
                 case '5':
                     if (valueSplits[1].length != 5) {
-                        errorMessages.push('5D Ticket number length should be 5 digits only: ' + valueSplits[1]);
+                        errorMessages.push('5D Ticket number length should be 5 digits only: ' + valueSplits[1] + ', <a href="#error-textarea-' + (index + 1) + '">Go to message #' + (index + 1) + '</a>');
+                        // set color to red for textarea
+                        textarea.style.border = '2px solid red';
+                        // Add a attribute data-error to textarea
+                        textarea.setAttribute('data-error', 'true');
+                        // Set id to textarea
+                        textarea.setAttribute('id', 'error-textarea-' + (index + 1));
                     }
                     break;
             }
@@ -1425,6 +1475,10 @@ function generateFinalOutput() {
         showErrorMessages(errorMessages);
     } else {
         showSuccessMessages(['Total records: ' + totalRecords + '. Final output generated successfully!']);
+    }
+    // Check the checkbox showFailedParsing is checked, if so, click #showOnlyErrorsBtn button
+    if (document.getElementById('showFailedParsing').checked) {
+        document.getElementById('showOnlyErrorsBtn').click();
     }
 }
 
@@ -1500,6 +1554,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('processZipBtn')?.addEventListener('click', (event) => {
         parseZipFile(event);
+    });
+
+    document.getElementById('showOnlyErrorsBtn')?.addEventListener('click', () => {
+        document.getElementById('validate-tab').click();
+        // find elements with data-error attribute
+        const formattedMessages = document.querySelectorAll('.formatted-msg');
+        formattedMessages.forEach(textarea => {
+            //tr>td>textarea
+            const row = textarea.closest('tr');
+            if (textarea.getAttribute('data-error')) {
+                // show the row of the textarea
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    document.getElementById('showAllBtn')?.addEventListener('click', () => {
+        document.getElementById('validate-tab').click();
+            const formattedMessages = document.querySelectorAll('.formatted-msg');
+        formattedMessages.forEach(textarea => {
+            const row = textarea.closest('tr');
+            row.style.display = 'block';
+        });
     });
     // Generate final output
     document.getElementById('generateFinalOutputBtn').addEventListener('click', function () {
