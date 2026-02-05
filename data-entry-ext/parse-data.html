@@ -122,7 +122,7 @@
         }
 
         button,
-        input {
+        input[type="file"] {
             padding: 10px 24px;
             background: #1976d2;
             color: white;
@@ -132,6 +132,15 @@
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
+        }
+
+        input[type="text"] {
+            border: 1px solid #ddd;
+            font-size: large;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            padding: 10px;
         }
 
         button:hover {
@@ -288,6 +297,14 @@
             background: white;
         }
 
+        textarea.copied-now {
+            border: 2px solid #28a745 !important;
+        }
+
+        textarea.copied {
+            border: 1px solid #2a04e4 !important;
+        }
+
         .tab-pane {
             display: none;
             padding-top: 16px;
@@ -318,10 +335,12 @@
         <div id="buttonGroupSection" class="button-group">
             <input type="file" id="zipInput" accept=".zip">
             <button id="processZipBtn" class="btn btn-primary btn-sm">Process Zip</button>
-
             <button id="parseInputBtn" class="btn btn-primary btn-sm hide_ele">Parse Data</button>
             <button id="processBtn" class="btn btn-primary btn-sm hide_ele">Process Data</button>
             <button id="generateFinalOutputBtn" class="btn btn-primary btn-sm">Gen Output</button>
+
+            <button id="saveInputDataBtn" class="btn btn-secondary btn-sm">Save Input</button>
+
             <a href="#status-message" class="btn btn-primary btn-sm" title="Go to Top">Top</a>
             <div class="hide_ele">
                 <button id="showOnlyErrorsBtn" class="btn btn-error btn-sm">Show Errors</button>
@@ -382,8 +401,23 @@
                     </div>
                     <div class="col">
                         <label for="outputData">Replace amount - (Example:1DTkt=1dTkt30,1DTkt20=1DTkt30)</label>
-                        <textarea id="amountMapping" class="output-area" rows="25"
+                        <textarea id="amountMapping" class="output-area" rows="5"
                             placeholder="Amount mapping 1DTkt=1dTkt30,1DTkt20=1DTkt30"></textarea>
+                        <label for="1dRecordLimit" class="form-label">1D record limit:</label>
+                        <input type="text" id="1dRecordLimit" class="form-control"
+                            placeholder="1D record limit (default 100)" value="50">
+                        <label for="2dRecordLimit" class="form-label">2D record limit:</label>
+                        <input type="text" id="2dRecordLimit" class="form-control"
+                            placeholder="2D record limit (default 100)" value="50">
+                        <label for="3dRecordLimit" class="form-label">3D record limit:</label>
+                        <input type="text" id="3dRecordLimit" class="form-control"
+                            placeholder="3D record limit (default 100)" value="100">
+                        <label for="4dRecordLimit" class="form-label">4D record limit:</label>
+                        <input type="text" id="4dRecordLimit" class="form-control"
+                            placeholder="4D record limit (default 100)" value="40">
+                        <label for="5dRecordLimit" class="form-label">5D record limit:</label>
+                        <input type="text" id="5dRecordLimit" class="form-control"
+                            placeholder="5D record limit (default 100)" value="40">
                     </div>
                 </div>
             </div>

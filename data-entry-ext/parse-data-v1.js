@@ -5,9 +5,11 @@
    * Format: type,number,qty,amount,category (exactly 5 fields)
    * Example output: 3DTkt,456,2,60,
    */
+
 // Chrome web javascript extension parse-data-v1.js
 const FAILED_TO_PARSE = 'FAILED TO PARSE';
-
+// map to store image name and url
+var imageMap = new Map();
 var lastFocusedTextareaIdx = 0;
 
 // ============================================================================
@@ -81,6 +83,7 @@ function cleanupLine(line) {
 }
 
 function parseMessages() {
+    // clear map before parsing
     var groups = getMessageGroups();
     showFailedParsing = document.getElementById('showFailedParsing').checked;
 
@@ -150,6 +153,11 @@ function parseMessages() {
             if (isMessageHeaderLine) {
                 line = line.replace(isMessageHeaderLine[0], '').trim();
             }
+            line = line.replace(
+                /^\[\d{2}\/\d{2}\/\d{4},\s*\d{1,2}:\d{2}(?::\d{2})?[\s\u202F]*(AM|PM)\][\s\u200E]*[^:]+:\s*/i,
+                ''
+            ).trim();
+
 
             isInfoMessageLine = line.match(/^((\[\s*)?\d{2}\/\d{2}\/\d{2,4},\s*\d{1,2}:\d{2}(:\d{2})?\s*(AM|PM|am|pm)\D+)$/);
             if (isInfoMessageLine) {
@@ -174,7 +182,6 @@ function parseMessages() {
 
             // replace board ''
             const replacements = [
-                "KL",
                 "KERALA",
                 "PM.3",
                 "DR.1",
@@ -209,16 +216,22 @@ function parseMessages() {
                 "3PM",
                 "DEAR",
                 "BOARD",
-                "BORD",
-                "KL"
+                "BORD"
             ];
             replacements.forEach(item => {
                 line = line.replace(item, "");
             });
 
+
+
             // If line contains only date like 
             // Replace double .. with single .
             // replace double ,, or spaces with single space
+            line = line.replace(/ℝ𝕤/ig, 'RS')
+            line = line.replace(/₹/ig, 'RS')
+            line = line.replace(/\d{2}-\d{2}-\d{4}/, '').trim();
+            line = line.replace(/KL[^a-zA-Z0-9]*(\d+)?/g, '').trim();
+            line = line.replace(/\d+[^a-zA-Z0-9]*DIGIT/g, '').trim();
             line = line.replace(/\.{2,}/g, '.').trim();
             line = line.replace(/,{2,}/g, ',').trim();
             line = line.replace(/\s{2,}/g, ' ').trim();
@@ -320,10 +333,13 @@ function parseMessages() {
             line = line.replace("B C", "B-C");
             line = line.replace("C B", "C-B");
             */
+            // replace line ₹28 with RS28
+            line = line.replace(/₹/g, 'RS');
             line = line.replaceAll('CHANCE', 'SET');
             //line = line.replaceAll('CH', 'SET');
             line = line.replace("ABBCAC", "ALL"); // replace multiple spaces with single space
             line = line.replaceAll('ECH', 'EACH'); // replace multiple spaces with single space
+            line = line.replace('ALL', ' ALL '); // add space before ALL to avoid partial match
             line = cleanupLine(line);
             targetRegexMatch = line.match(/\b(?:AB|AC|BC)\b(?:[.,=\s]+\b(?:AB|AC|BC)\b)*/gi)
             if (targetRegexMatch) {
@@ -342,7 +358,7 @@ function parseMessages() {
             }
             // If value matches AB BC AC with any combination or any special characters between them replace with ALL
             // If matches AB,AC,BC,ALL,AB-BC,AC-BC,BC-AC,BC-AB
-            const categoryMatch = line.replace(' ', '').match(/^(AB|BC|AC|A|B|C|AB-AC-BC|AB-BC-AC|BC-AB-AC|BC-AB-AC|AC-AB-BC|AC-BC-AB|AB-BC|AB-AC|AC-AB|AC-BC|BC-AC|BC-AB|ALL|A-B-C|ABC|AB AC|AB BC|AC BC|AB AC BC|AB BC AC|AC AB BC|AC BC AB|BC AB AC|BC AC AB|ABAC|ABBC|BCAB|BCAC)$/);
+            const categoryMatch = line.replace(/[^A-Z0-9]+/g, '-').match(/^(AB|BC|AC|A|B|C|AB-AC-BC|AB-BC-AC|BC-AB-AC|BC-AB-AC|AC-AB-BC|AC-BC-AB|AB-BC|AB-AC|AC-AB|AC-BC|BC-AC|BC-AB|ALL|A-B-C|ABC|A-B|A-C|B-C|B-A|C-A)$/);
             if (categoryMatch) {
                 cleandMsg['target'] = categoryMatch[1];
                 lastTarget = categoryMatch[1];
@@ -369,7 +385,7 @@ function parseMessages() {
             }
 
             // If line matches RS.30 or RS30 or RS 30, replace space and hyphen with empty string
-            const rsMatch = line.match(/^RS[\.\s=\/_,]*([\d]+)[\s\.]*/i);
+            const rsMatch = line.match(/^RS[(\.\s=\/_,]*([\d]+)[\s\.)]*/i);
             if (rsMatch) {
                 cleandMsg['amount'] = rsMatch[1];
                 line = line.replace(rsMatch[0], ' ').trim();
@@ -393,7 +409,7 @@ function parseMessages() {
             }
 
             // If rs30 matches with part of line
-            const partRsMatch = line.match(/RS[\s.,-]?(\d+)/);
+            const partRsMatch = line.match(/RS[\s.,-]*(\d+)/);
             if (partRsMatch) {
                 cleandMsg['amount'] = partRsMatch[1];
                 line = cleanupLine(line.replace(partRsMatch[0], ' '));
@@ -433,9 +449,15 @@ function parseMessages() {
                 isLastDear = true;
                 return;
             }
-
+            line = line.replace('₹', 'RS').trim();
             // Replace all the non (A-Z and 0-9) {1,} between the valid values to single -
             line = cleanupLine(line.replace(/[^A-Z0-9]+/g, '~')).trim();
+            line = line.replace('AB~AC', 'AB-AC').trim();
+            line = line.replace('A~B', 'A-B').trim();
+            line = line.replace('A~C', 'A-C').trim();
+            line = line.replace('B~C', 'B-C').trim();
+            line = line.replace('AB~BC', 'AB-BC').trim();
+            line = line.replace('AC~BC', 'AC-BC').trim();
 
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
             const setMatch = line.match(/^(\d{1,5})[~]+(\d{1,5})(SET|SETS)?$/);
@@ -452,14 +474,14 @@ function parseMessages() {
             }
             line = cleanupLine(line);
             // Check line matches AC-80-10
-            const starMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C)~(\d{1,5})~(\d{1,5})~?(SET|SETS|ST|CH|CHANCE|E)?$/);
+            const starMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C|A|B|C)~(\d{1,5})~(\d{1,5})~?(SET|SETS|ST|CH|CHANCE|E)?$/);
             if (starMatch) {
                 cleandMsg['data'].push({ target: starMatch[1], number: starMatch[2], qty: starMatch[3] });
                 return;
             }
 
             // Check line matches ALL-50set or ALL~50set or ALL~50~SET
-            const targetAndQtyMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C)~?(\d{1,5})~?(SET|SETS|ST|CH|CHANCE|E)$/);
+            const targetAndQtyMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C|A|B|C)~?(\d{1,5})~?(SET|SETS|ST|CH|CHANCE|E)$/);
             if (targetAndQtyMatch) {
                 cleandMsg['target'] = targetAndQtyMatch[1];
                 cleandMsg['qty'] = targetAndQtyMatch[2];
@@ -467,14 +489,14 @@ function parseMessages() {
             }
 
             // Check line matches ALL-50set or ALL~50set or ALL~50~SET
-            const targetAndNumberMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C)~?(\d{1,5})~?$/);
+            const targetAndNumberMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C|A|B|C)~?(\d{1,5})~?$/);
             if (targetAndNumberMatch) {
                 cleandMsg['data'].push({ target: targetAndNumberMatch[1], number: targetAndNumberMatch[2] });
                 return;
             }
 
             // All-50set
-            const allSetMatch = line.match(/^(ALL)~(\d{1,5})(SET|SETS)$/);
+            const allSetMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C|A|B|C)~(\d{1,5})(SET|SETS)$/);
             if (allSetMatch) {
                 allQtySet = allSetMatch[2];
                 return;
@@ -627,7 +649,7 @@ function parseMessages() {
             }
 
             // If line matches AC-60-20set or Bc. 25.5.set
-            const dashMatch = line.match(/^(A|B|C|ALL|AB|AC|BC|ABC)-?(\d{1,5})[~]+(\d{1,5})~?(SET|SETS|ST|CH|E|.)?$/);
+            const dashMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)-?(\d{1,5})[~]+(\d{1,5})~?(SET|SETS|ST|CH|E|.)?$/);
             if (dashMatch) {
                 let numberPart = dashMatch[2];
                 let qtyPart = dashMatch[3];
@@ -641,7 +663,7 @@ function parseMessages() {
             }
 
             // If matches BC-69-96-10SET add Target BC and numbers 69 and 96 with qty 10
-            const multiDashMatch = line.replace(/\s/g, '').match(/^(A|B|C|ALL|AB|AC|BC|ABC)~(\d{1,5})~(\d{1,5})~(\d{1,5})(SET|SETS)?$/);
+            const multiDashMatch = line.replace(/\s/g, '').match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)~(\d{1,5})~(\d{1,5})~(\d{1,5})(SET|SETS)?$/);
             if (multiDashMatch) {
                 let numberPart1 = multiDashMatch[2];
                 let numberPart2 = multiDashMatch[3];
@@ -658,7 +680,8 @@ function parseMessages() {
             }
 
             // AC-10SET or BC-10SET or AB-10SET or A-10 or AC-BC-35SET
-            targetQtyRegex = /(?:\b(AC|BC|AB)\b(?:~+(AC|BC|AB))*)~+(\d+)/i;
+            targetQtyRegex = /(?:\b(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)\b(?:~+(?:AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C))*)~+(\d+)/i;
+
             const targetQtyMatch = line.match(targetQtyRegex);
             if (targetQtyMatch) {
                 let targets = targetQtyMatch[1].toUpperCase();
@@ -666,14 +689,14 @@ function parseMessages() {
             }
 
             // BC-25-5-SET
-            const dotSetMatch = line.replace(/\s/g, '').match(/^(A|B|C|ALL|AB|AC|BC)~(\d{1,5})~(\d{1,5})(SET|SETS)+$/);
+            const dotSetMatch = line.replace(/\s/g, '').match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)~(\d{1,5})~(\d{1,5})(SET|SETS)+$/);
             if (dotSetMatch) {
                 cleandMsg['data'].push({ target: dotSetMatch[1], number: dotSetMatch[2], qty: dotSetMatch[3] });
                 return;
             }
 
             // Check value matches A 3/45
-            const targetSlashMatch = line.match(/^(A|B|C|ALL|AB|AC|BC)~(\d{1,5})\/(\d{1,5})$/);
+            const targetSlashMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C|A|B|C)~(\d{1,5})\/(\d{1,5})$/);
             if (targetSlashMatch) {
                 cleandMsg['data'].push({ target: targetSlashMatch[1], number: targetSlashMatch[2], qty: targetSlashMatch[3] });
                 cleandMsg['target'] = targetSlashMatch[1];
@@ -681,7 +704,7 @@ function parseMessages() {
             }
 
             //When value matches Bc88-5
-            const dotMatch = line.match(/^(A|B|C|ALL|AB|AC|BC)(\d{1,5})~(\d{1,5})$/);
+            const dotMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C|A|B|C)(\d{1,5})~(\d{1,5})$/);
             if (dotMatch) {
                 cleandMsg['data'].push({ target: dotMatch[1], number: dotMatch[2], qty: dotMatch[3] });
                 return;
@@ -704,19 +727,32 @@ function parseMessages() {
             }
 
             //A3x5
-            const xMatch = line.replace(/ /g, "").match(/^(A|B|C|ALL|AB|AC|BC)?(\d{1,5})X(\d{1,5})$/);
+            const xMatch = line.replace(/ /g, "").match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)?(\d{1,5})X(\d{1,5})$/);
             if (xMatch) {
                 cleandMsg['data'].push({ target: xMatch[1], number: xMatch[2], qty: xMatch[3] });
                 return;
             }
 
             // Target and number match ALL 50 or AC 90
-            const targetNumberMatch = line.match(/^(ALL|ABC|AB|AC|BC|A|B|C)~(\d{1,5})$/i);
+            const targetNumberMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)~(\d{1,5})$/i);
             if (targetNumberMatch) {
                 cleandMsg['data'].push({ target: targetNumberMatch[1], number: targetNumberMatch[2] });
                 cleandMsg['target'] = targetNumberMatch[1];
                 return;
             }
+
+            // Check line matches ALL~40~52~25~40~24~42
+            const targetAndMultipleNumberMatch = line.match(/^(AB|AC|BC|ABC|ALL|AB-AC|AB-BC|AC-BC|A|B|C|A-B|A-C|B-C)(?:~\d{1,5})+$/);
+
+            if (targetAndMultipleNumberMatch) {
+                const target = targetAndMultipleNumberMatch[1];
+                const numbers = line.match(/\d{1,5}/g).map(num => num.trim());
+                numbers.forEach(number => {
+                    cleandMsg['data'].push({ target: target, number: number });
+                });
+                return;
+            }
+
 
             //^\d+(?:~\d+)+$
             const multiNumberMatch = line.replace(/ /g, "").match(/^(\d{1,5})(~(\d{1,5}))+$/);
@@ -843,6 +879,8 @@ function parseMessages() {
 
             if (line['data'] && line['data'].length > 0) {
                 hasData = true;
+            } else {
+                hasData = false;
             }
             if (line['isBox']) {
                 if (!hasData) {
@@ -1016,6 +1054,12 @@ function parseMessages() {
                             n = d['number'];
                             finalBoxStatus = isBox || line['isBox'] ? true : false;
                             if (n.length == 1) {
+                                if (targetValueLocal == 'ABC' || targetValueLocal == 'ALL') {
+                                    targetValueLocal = 'ALL';
+                                } else {
+                                    // Take each char from targetValue and seperate by hyphen
+                                    targetValueLocal = targetValueLocal ? targetValueLocal.split('').filter(c => c !== '-').sort().join('-') : '';
+                                }
                                 if (finalBoxStatus) {
                                     outLines.push(`1DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                                 } else if (isCut) {
@@ -1183,9 +1227,17 @@ function generateTable() {
         const inputMsg = inputGroups[i] ? inputGroups[i].join('\n') : '';
         const outputMsg = outGroups[i] ? outGroups[i].filter(l => l.trim() && !l.includes(FAILED_TO_PARSE)).join('\n') : '';
         const show = !showFailedParsing || outputMsg.includes(FAILED_TO_PARSE);
+        imagePath = outputMsg.toUpperCase().replace('ATTACHMENT:', '').trim();
+        const imageUrl = imageMap.get(imagePath);
+        //console.log('Looking for image with key:', imagePath);
+        //console.log('Available images in map:', Array.from(imageMap.keys()));
+        //console.log('Found image URL:', imageUrl);
+
+        // Build image HTML with fallback if image not found
+        const imgHtml = imageUrl ? `<br/><img src="${imageUrl}" alt="${outputMsg}" style="max-width: 200px; margin-top: 10px;">` : ``;
         // How to set focus on textarea after generating table - set focus on first textarea only
-        tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1}</td>
-            <td><textarea class="original-msg" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea></td>
+        tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1} <button class="delete-row-btn">Delete</button></td>
+            <td><textarea class="original-msg" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea>${imgHtml}</td>
             <td><textarea class="formatted-msg" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea></td></tr>`;
     }
 
@@ -1218,6 +1270,22 @@ function generateTable() {
             }
         });
     });
+
+    // Add event listener to delete row button
+    const deleteRowButtons = document.querySelectorAll('.delete-row-btn');
+    deleteRowButtons.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            // Identify the row to delete
+            const rowToDelete = btn.closest('tr');
+            if (rowToDelete) {
+                rowToDelete.remove();
+                copyInputEditedData();
+                parseMessages();
+                generateTable();
+                generateFinalOutput();
+            }
+        });
+    });
 }
 
 function copyWhatsappInput() {
@@ -1236,20 +1304,29 @@ function copyTextarea(button) {
     const textarea = button.nextElementSibling;
     textarea.select();
     textarea.setSelectionRange(0, 99999); // For mobile devices
-
+    // Change the all the textareas with class copied-now to class copied
+    const copiedNowTextareas = document.querySelectorAll('.copied-now');
+    copiedNowTextareas.forEach(ta => {
+        ta.classList.remove('copied-now');
+        ta.classList.add('copied');
+    });
+    // change textarea border color to green
+    textarea.classList.add('copied-now');
     navigator.clipboard.writeText(textarea.value).then(() => {
         const originalText = button.textContent;
         button.textContent = 'Copied!';
         button.style.background = '#28a745';
-
+        /*
         setTimeout(() => {
             button.textContent = originalText;
             button.style.background = '';
         }, 1500);
+        */
     }).catch(err => {
         console.error('Failed to copy:', err);
         alert('Failed to copy to clipboard');
     });
+
 }
 
 function copyInputEditedData() {
@@ -1296,10 +1373,19 @@ function showMessages(values, classNameValue) {
 }
 
 function renderFinalOutput(messageGroup, message) {
+    // wait for 100 ms to render the table one by one
     // Read keys from messageGroup and generate final output - sort keys first
     const sortedKeys = Object.keys(messageGroup).sort();
     // Create table and insert textarea into table column - print lines of table
-    var table = `<h3>${message}</h3><img src="${message.replace('attachment:', '')}" alt="${message}" style="max-width: 200px; margin-top: 10px;"><table>
+    imagePath = message.toUpperCase().replace('ATTACHMENT:', '').trim();
+    const imageUrl = imageMap.get(imagePath);
+    //console.log('Looking for image with key:', imagePath);
+    //console.log('Available images in map:', Array.from(imageMap.keys()));
+    //console.log('Found image URL:', imageUrl);
+
+    // Build image HTML with fallback if image not found
+    const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${message}" style="max-width: 200px; margin-top: 10px;">` : `<div style="color: #999; padding: 10px; background: #f5f5f5; border-radius: 4px; max-width: 200px; margin-top: 10px;">Image not found</div>`;
+    var table = `<h3>${message}</h3>${imgHtml}<table>
             <tbody><tr>`;
     var idx = 0;
     var allowedListSize = 40;
@@ -1307,6 +1393,20 @@ function renderFinalOutput(messageGroup, message) {
         const values = messageGroup[key];
         let output = '';
         var lists = [];
+        // first value 
+        const firstValue = values[0] || '';
+        firstValueSplits = firstValue.split(',');
+        if (firstValueSplits[0].length == 1) {
+            allowedListSize = parseInt(document.getElementById('1dRecordLimit').value) || 50;
+        } else if (firstValueSplits[0].length == 2) {
+            allowedListSize = parseInt(document.getElementById('2dRecordLimit').value) || 50;
+        } else if (firstValueSplits[0].length == 3) {
+            allowedListSize = parseInt(document.getElementById('3dRecordLimit').value) || 100;
+        } else if (firstValueSplits[0].length == 4) {
+            allowedListSize = parseInt(document.getElementById('4dRecordLimit').value) || 40;
+        } else if (firstValueSplits[0].length == 5) {
+            allowedListSize = parseInt(document.getElementById('5dRecordLimit').value) || 40;
+        }
         for (var slIdx = 0; slIdx < values.length; slIdx += allowedListSize) {
             lists.push(values.slice(slIdx, slIdx + allowedListSize));
         }
@@ -1488,8 +1588,10 @@ function generateFinalOutput() {
     extract zip file to chrome extension local dir
     Identify all txt files in the extracted dir
     Read each txt file and place in the inputData textarea
+    Extract images and save them to appropriate location based on OS
 */
 function parseZipFile(event) {
+    imageMap.clear();
     const file = document.getElementById('zipInput').files[0];
     // Show extension dir name
     console.log('Selected zip file:', file.name);
@@ -1499,16 +1601,31 @@ function parseZipFile(event) {
             const arrayBuffer = e.target.result;
             JSZip.loadAsync(arrayBuffer).then(function (zip) {
                 let allTextPromises = [];
+                let imageFiles = [];
+
                 zip.forEach(function (relativePath, zipEntry) {
                     if (zipEntry.name.endsWith('.txt')) {
                         const textPromise = zipEntry.async('string').then(function (fileData) {
                             return fileData;
                         });
                         allTextPromises.push(textPromise);
-                    } else {
-
+                    } else if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(zipEntry.name)) {
+                        // Collect image files
+                        imageFiles.push({
+                            name: zipEntry.name,
+                            zipEntry: zipEntry
+                        });
+                        const imagePromise = zipEntry.async("blob").then(function (blob) {
+                            const url = URL.createObjectURL(blob);
+                            imageMap.set(zipEntry.name.toUpperCase(), url);
+                        });
+                        allTextPromises.push(imagePromise);
                     }
                 });
+
+                // Extract and save images
+                //extractAndSaveImages(imageFiles);
+
                 Promise.all(allTextPromises).then(function (allTexts) {
                     document.getElementById('inputData').value = allTexts.join('\n');
                     // Save the input in the local storage
@@ -1521,6 +1638,52 @@ function parseZipFile(event) {
         };
         reader.readAsArrayBuffer(file);
     }
+}
+
+/**
+ * Extract images from zip and save to appropriate location based on OS
+ * Windows: D:/data-entry
+ * Mac: ~/Downloads
+ */
+function extractAndSaveImages(imageFiles) {
+    if (imageFiles.length === 0) {
+        console.log('No images found in zip file');
+        return;
+    }
+
+    // Detect OS
+    const isWindows = navigator.platform.indexOf('Win') > -1;
+    const isMac = navigator.platform.indexOf('Mac') > -1;
+
+    console.log('Detected OS - Windows:', isWindows, 'Mac:', isMac);
+    console.log('Found', imageFiles.length, 'images to extract');
+
+    // Process each image
+    imageFiles.forEach(function (imageFile) {
+        imageFile.zipEntry.async('blob').then(function (blob) {
+            // Create a download link for the image
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Determine filename (get just the filename without path)
+            const filename = imageFile.name.split('/').pop();
+            link.download = filename;
+
+            // Append to body and trigger download
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            console.log('Downloaded image:', filename);
+        });
+    });
+
+    // Inform user about image extraction
+    alert(`Found ${imageFiles.length} image(s). They have been downloaded to your Downloads folder.\n\nNote: Browser cannot directly save to specific folders. Please save them to:\n${isWindows ? 'D:\\data-entry' : '~/Downloads'} manually if needed.`);
 }
 
 // Parse Data functionality
@@ -1573,7 +1736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('showAllBtn')?.addEventListener('click', () => {
         document.getElementById('validate-tab').click();
-            const formattedMessages = document.querySelectorAll('.formatted-msg');
+        const formattedMessages = document.querySelectorAll('.formatted-msg');
         formattedMessages.forEach(textarea => {
             const row = textarea.closest('tr');
             row.style.display = 'block';
@@ -1595,5 +1758,40 @@ document.addEventListener('DOMContentLoaded', () => {
         parseMessages();
         generateTable();
         generateFinalOutput();
+    });
+
+    // set default value of inputData textarea from local storage if available
+    const savedInputData = localStorage.getItem('inputData');
+    if (savedInputData) {
+        document.getElementById('inputData').value = savedInputData;
+        parseMessages();
+        generateTable();
+        generateFinalOutput();
+    }
+
+    // Save button saveInputDataBtn
+    document.getElementById('saveInputDataBtn')?.addEventListener('click', () => {
+        copyInputEditedData();
+        // Allow to download the input data as txt file
+        // give save as button functionality to download the input data as txt file
+        const inputData = document.getElementById('inputData').value;
+        if (!inputData || inputData.trim() === '') {
+            alert('Input data is empty. Please enter some data to save.');
+            return;
+        }
+        const blob = new Blob([inputData], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = 'Download input data';
+        a.download = 'input_data.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+
+    window.addEventListener('beforeunload', function (event) {
+        event.preventDefault(); // Prevent the default action
+        event.returnValue = ''; // Display a confirmation dialog
     });
 });
