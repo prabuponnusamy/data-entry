@@ -10,8 +10,9 @@
 const FAILED_TO_PARSE = 'FAILED TO PARSE';
 // map to store image name and url
 var imageMap = new Map();
+var visionRequests = new Map();
+//const requestMeta = [];
 var lastFocusedTextareaIdx = 0;
-
 // ============================================================================
 // SECTION 0: TAB MANAGEMENT
 // ============================================================================
@@ -50,7 +51,7 @@ function initializeTabs() {
  * Groups are separated by timestamp lines containing ":"
  */
 function getMessageGroups() {
-    const inputData = document.getElementById('inputData').value;
+    const inputData = document.getElementById('inputData').value;//plainTextNormalize(document.getElementById('inputData').value);
     const lines = inputData.split('\n').filter(line => line.trim() !== '');
     let messageGroup = [];
     let message = [];
@@ -95,6 +96,7 @@ function parseMessages() {
         replace = {};
         msg.forEach((line, index) => {
             if (line === '') return;
+            line = plainTextNormalize(line);
             if (line.indexOf('RP') == 0) {
                 line = line.replace('RP', '');
                 replacevalues = line.split('##');
@@ -1234,7 +1236,11 @@ function generateTable() {
         //console.log('Found image URL:', imageUrl);
 
         // Build image HTML with fallback if image not found
-        const imgHtml = imageUrl ? `<br/><img src="${imageUrl}" alt="${outputMsg}" style="max-width: 200px; margin-top: 10px;">` : ``;
+        const imgHtml = imageUrl ? `<br/>
+            <button class="extract-text-btn" data-image-name="${imagePath.toUpperCase()}">Extract Text</button>
+            <br/>
+            <img src="${imageUrl}" alt="${outputMsg}" style="max-width: 200px; margin-top: 10px;">
+        ` : ``;
         // How to set focus on textarea after generating table - set focus on first textarea only
         tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1} <button class="delete-row-btn">Delete</button></td>
             <td><textarea class="original-msg" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea>${imgHtml}</td>
@@ -1286,7 +1292,61 @@ function generateTable() {
             }
         });
     });
+
+    const extractTextButtons = document.querySelectorAll('.extract-text-btn');
+    extractTextButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const imageName = btn.dataset.imageName;
+            if (imageName) {
+                imageToTextRequest(imageName, btn);
+            } else {
+                showErrorMessages(['Image not found for OCR']);
+            }
+        });
+    });
 }
+
+function extractWords(page) {
+    const words = [];
+    page.blocks.forEach(block => {
+        block.paragraphs.forEach(p => {
+            p.words.forEach(w => {
+                const text = w.symbols.map(s => s.text).join('');
+                const x = w.boundingBox.vertices[0].x || 0;
+                const y = w.boundingBox.vertices[0].y || 0;
+                words.push({ text, x, y });
+            });
+        });
+    });
+    words.sort((a, b) => a.x - b.x);
+
+    const columns = [];
+    const threshold = 100; // tweak
+
+    words.forEach(w => {
+        let col = columns.find(c =>
+            Math.abs(c.x - w.x) < threshold);
+
+        if (!col) {
+            col = { x: w.x, items: [] };
+            columns.push(col);
+        }
+
+        col.items.push(w);
+    });
+    var values = [];
+    columns.forEach(col => {
+
+        col.items.sort((a, b) => a.y - b.y);
+
+        //console.log("COLUMN");
+        col.items.forEach(i => values.push(i.text));
+    });
+
+
+    return values;
+}
+
 
 function copyWhatsappInput() {
     const textarea = document.getElementById('inputData');
@@ -1418,7 +1478,7 @@ function renderFinalOutput(messageGroup, message) {
             // create new text area 
             table += `<td>
                     <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
-                    <button class="copy-btn" onclick="copyTextarea(this)" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button>
+                    <button class="copy-btn" data-action="copy" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button>
                     <textarea class="output-textarea" placeholder="Formatted output..." rows="${values.length ? (values.length > 30 ? 30 : values.length + 1) : 1}">${sublist.join('\n')}</textarea>
                     </td>`;
         });
@@ -1450,6 +1510,7 @@ function generateFinalOutput() {
 
     errorMessages = [];
     var totalRecords = 0;
+    var keys = [];
     formattedMessages.forEach((textarea, index) => {
         const content = textarea.value.trim();
         // split content by new line and store
@@ -1459,11 +1520,13 @@ function generateFinalOutput() {
             valueSplits = line.split(',');
             // when value 1 is not number
             if (valueSplits.length < 3) {
+                Object.keys(messageGroup).forEach(key => keys.push(key));
                 renderFinalOutput(messageGroup, label);
                 label = line;
                 messageGroup = new Object();
                 return;
             }
+
 
             if (valueSplits.length < 5) {
                 //alert('Each line must have exactly 4 commas: ' + line);
@@ -1568,7 +1631,12 @@ function generateFinalOutput() {
             }
         });
     });
+    Object.keys(messageGroup).forEach(key => keys.push(key));
     renderFinalOutput(messageGroup, label);
+    // remove duplicate keys from keys array
+    keys = [...new Set(keys)];
+    keys.sort();
+    document.getElementById('available-amount-keys').innerHTML = '<b>Available keys for amount mapping: </b><i>' + keys.join(' , ') + '</i>';
     if (errorMessages.length > 0) {
         // Add total records as first message
         errorMessages.unshift('Total records: ' + totalRecords + '. Please fix the following errors:');
@@ -1618,6 +1686,17 @@ function parseZipFile(event) {
                         const imagePromise = zipEntry.async("blob").then(function (blob) {
                             const url = URL.createObjectURL(blob);
                             imageMap.set(zipEntry.name.toUpperCase(), url);
+
+                            // convert for OCR
+                            blobToBase64(blob).then(function (base64) {
+                                visionRequests.set(zipEntry.name.toUpperCase(), {
+                                    image: { content: base64 },
+                                    features: [{ type: "TEXT_DETECTION" }]
+                                });
+                                // requestMeta.push(zipEntry.name);
+                            }).catch(function (error) {
+                                console.error('Error converting blob to base64:', error);
+                            });
                         });
                         allTextPromises.push(imagePromise);
                     }
@@ -1627,9 +1706,12 @@ function parseZipFile(event) {
                 //extractAndSaveImages(imageFiles);
 
                 Promise.all(allTextPromises).then(function (allTexts) {
+                    //imageToTextRequest();
                     document.getElementById('inputData').value = allTexts.join('\n');
                     // Save the input in the local storage
                     localStorage.setItem('inputData', document.getElementById('inputData').value);
+                    localStorage.setItem('imageMap', JSON.stringify(Array.from(imageMap.entries())));
+                    localStorage.setItem('visionRequests', JSON.stringify(Array.from(visionRequests.entries())));
                     parseMessages();
                     generateTable();
                     generateFinalOutput();
@@ -1639,6 +1721,72 @@ function parseZipFile(event) {
         reader.readAsArrayBuffer(file);
     }
 }
+
+function imageToTextRequest() {
+    if (visionRequests.length > 0) {
+        console.log('Sending OCR requests for images:', visionRequests);
+        const body = { requests: visionRequests };
+        const googleVisionApiKey = document.getElementById('googleVisionApiKey').value || '';
+        if (!googleVisionApiKey) {
+            console.error('Google Vision API key missing');
+            alert('Google Vision API key is required for OCR functionality. Please enter the API key and try again.');
+            return;
+        }
+
+        const response = fetch(
+            "https://vision.googleapis.com/v1/images:annotate?key=" + googleVisionApiKey,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            }
+        ).then(response => {
+            response.json().then(data => {
+                //console.log('OCR Response:', data);
+                data.responses.forEach((res, index) => {
+                    const text = res.fullTextAnnotation?.text || '';
+                    console.log('Extracted text for image', requestMeta[index], ':', text);
+                });
+            });
+        });
+    }
+}
+
+async function imageToTextRequest(imageName, thisButton) {
+    if (!visionRequests.get(imageName)) {
+        return '';
+    }
+    const googleVisionApiKey = document.getElementById('googleVisionApiKey').value || '';
+    if (!googleVisionApiKey) {
+        console.error('Google Vision API key missing');
+        alert('Google Vision API key is required for OCR functionality. Please enter the API key and try again.');
+        return '';
+    }
+    const body = {
+        requests: [visionRequests.get(imageName)]
+    };
+    const response = await fetch(
+        "https://vision.googleapis.com/v1/images:annotate?key=" + googleVisionApiKey,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        }
+    );
+    const data = await response.json();
+    const text = data.responses?.[0]?.fullTextAnnotation?.text || '';
+    const words = extractWords(data.responses[0].fullTextAnnotation.pages[0]);
+    console.log('Extracted text for image', imageName, ':', words.join('\n'));
+    if (thisButton) {
+        // create new textarea and append after this button with extracted text
+        const textarea = document.createElement('textarea');
+        textarea.className = 'extracted-text';
+        textarea.rows = 5;
+        textarea.value = ":\n" + words.join('\n');
+        thisButton.insertAdjacentElement('afterend', textarea);
+    }
+}
+
 
 /**
  * Extract images from zip and save to appropriate location based on OS
@@ -1686,6 +1834,115 @@ function extractAndSaveImages(imageFiles) {
     alert(`Found ${imageFiles.length} image(s). They have been downloaded to your Downloads folder.\n\nNote: Browser cannot directly save to specific folders. Please save them to:\n${isWindows ? 'D:\\data-entry' : '~/Downloads'} manually if needed.`);
 }
 
+function toBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function plainTextNormalize(str) {
+
+    function convertChar(ch) {
+        const code = ch.codePointAt(0);
+
+        // ---------- FULLWIDTH ASCII ----------
+        if (code >= 0xFF01 && code <= 0xFF5E)
+            return String.fromCharCode(code - 0xFEE0);
+
+        // ---------- CIRCLED NUMBERS ----------
+        if (code >= 0x2460 && code <= 0x2468)
+            return String(code - 0x245F);
+        if (code === 0x2469) return "10";
+
+        // ---------- SUPERSCRIPT DIGITS ----------
+        const superMap = {
+            0x2070: "0", 0x00B9: "1", 0x00B2: "2", 0x00B3: "3",
+            0x2074: "4", 0x2075: "5", 0x2076: "6",
+            0x2077: "7", 0x2078: "8", 0x2079: "9"
+        };
+        if (superMap[code]) return superMap[code];
+
+        // ---------- SUBSCRIPT DIGITS ----------
+        if (code >= 0x2080 && code <= 0x2089)
+            return String(code - 0x2080);
+
+        // ---------- FANCY DIGIT RANGES ----------
+        const digitRanges = [
+            [0x1D7CE, 0x1D7D7], // bold
+            [0x1D7D8, 0x1D7E1], // double struck
+            [0x1D7E2, 0x1D7EB], // sans
+            [0x1D7EC, 0x1D7F5], // sans bold
+            [0x1D7F6, 0x1D7FF], // monospace
+        ];
+        for (const [s, e] of digitRanges)
+            if (code >= s && code <= e)
+                return String(code - s);
+
+        // ---------- LETTER RANGES ----------
+        const letterRanges = [
+            // Bold
+            [0x1D400, 0x1D419, 65], [0x1D41A, 0x1D433, 97],
+            // Italic
+            [0x1D434, 0x1D44D, 65], [0x1D44E, 0x1D467, 97],
+            // Bold Italic
+            [0x1D468, 0x1D481, 65], [0x1D482, 0x1D49B, 97],
+            // Sans-serif
+            [0x1D5A0, 0x1D5B9, 65], [0x1D5BA, 0x1D5D3, 97],
+            // Sans-serif Bold
+            [0x1D5D4, 0x1D5ED, 65], [0x1D5EE, 0x1D607, 97],
+            // Monospace
+            [0x1D670, 0x1D689, 65], [0x1D68A, 0x1D6A3, 97],
+        ];
+        for (const [s, e, b] of letterRanges)
+            if (code >= s && code <= e)
+                return String.fromCharCode(b + (code - s));
+
+        // ---------- DOUBLE-STRUCK LETTERS ----------
+        const specialDouble = {
+            'ℂ': 'C', 'ℍ': 'H', 'ℕ': 'N', 'ℙ': 'P', 'ℚ': 'Q', 'ℝ': 'R', 'ℤ': 'Z'
+        };
+        if (specialDouble[ch]) return specialDouble[ch];
+
+        if (code >= 0x1D538 && code <= 0x1D551)
+            return String.fromCharCode(65 + (code - 0x1D538));
+
+        if (code >= 0x1D552 && code <= 0x1D56B)
+            return String.fromCharCode(97 + (code - 0x1D552));
+
+        // ---------- CLEAN INVISIBLE MARKS ----------
+        if (code === 0x200E || code === 0x200F)
+            return "";
+
+        return ch;
+    }
+
+    let out = [...str].map(convertChar).join('');
+
+    // ---------- WHITESPACE CLEAN ----------
+    out = out.replace(/\s+/g, ' ').trim();
+
+    return out;
+}
+
+
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+            resolve(reader.result.split(',')[1]);
+        };
+
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+
+
 // Parse Data functionality
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -1695,6 +1952,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize tab functionality
     initializeTabs();
+    // CSP-safe delegated click handlers (replaces inline `onclick` usage)
+    document.addEventListener('click', (e) => {
+        const actionEl = e.target.closest('[data-action]');
+        if (actionEl) {
+            e.preventDefault();
+            const action = actionEl.dataset.action;
+            switch (action) {
+                case 'copy':
+                    copyTextarea(actionEl);
+                    actionEl.textContent = 'Copied!';
+                    break;
+                case 'copy-with':
+                    copyTextWithNewLine(actionEl.dataset.value || '');
+                    break;
+                case 'copy-whatsapp':
+                    copyWhatsappInput();
+                    actionEl.textContent = 'Copied!';
+                    break;
+                default:
+                    // unknown data-action; do nothing
+                    break;
+            }
+            return;
+        }
+
+        // fallback: delete row button (keeps existing class-based behavior)
+        const delBtn = e.target.closest('button.delete-row-btn');
+        if (delBtn) {
+            const row = delBtn.closest('tr');
+            if (row) {
+                row.remove();
+                copyInputEditedData();
+                parseMessages();
+                generateTable();
+                generateFinalOutput();
+            }
+            return;
+        }
+
+        // fallback: extract text button with data-image-name
+        const extractBtn = e.target.closest('button.extract-text-btn[data-image-name]');
+        if (extractBtn) {
+            const imageName = extractBtn.dataset.imageName;
+            if (imageName) imageToTextRequest(imageName, extractBtn);
+            return;
+        }
+    });
 
     document.getElementById('parseInputBtn')?.addEventListener('click', () => {
         parseMessages();
@@ -1764,6 +2068,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedInputData = localStorage.getItem('inputData');
     if (savedInputData) {
         document.getElementById('inputData').value = savedInputData;
+        const savedImageMap = localStorage.getItem('imageMap');
+        if (savedImageMap) {
+            imageMap = new Map(JSON.parse(savedImageMap));
+        }
+        const savedVisionRequests = localStorage.getItem('visionRequests');
+        if (savedVisionRequests) {
+            visionRequests = new Map(JSON.parse(savedVisionRequests));
+        }
         parseMessages();
         generateTable();
         generateFinalOutput();
