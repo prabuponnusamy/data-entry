@@ -1723,11 +1723,6 @@ function parseZipFile(event) {
 }
 
 function imageToTextRequest() {
-    enabled = false;
-    if (!enabled) {
-        console.log('OCR functionality is currently disabled');
-        return;
-    }
     if (visionRequests.length > 0) {
         console.log('Sending OCR requests for images:', visionRequests);
         const body = { requests: visionRequests };
