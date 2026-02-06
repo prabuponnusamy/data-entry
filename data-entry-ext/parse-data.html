@@ -143,6 +143,15 @@
             padding: 10px;
         }
 
+        input[type="password"] {
+            border: 1px solid #ddd;
+            font-size: large;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            padding: 10px;
+        }
+
         button:hover {
             background: #15c040;
         }
@@ -266,6 +275,14 @@
             margin-left: 12px;
         }
 
+        .available-amount-keys {
+            border: 2px dashed #1976d2;
+            padding: 10px;
+            border-radius: 4px;
+            background: #e3f2fd;
+            font-size: medium;
+        }
+
         /* Tab Styling */
         .tab-nav {
             display: flex;
@@ -299,10 +316,12 @@
 
         textarea.copied-now {
             border: 2px solid #28a745 !important;
+            background-color: #81c784 !important;
         }
 
         textarea.copied {
-            border: 1px solid #2a04e4 !important;
+            border: 2px solid #2a04e4 !important;
+            background-color: #e8e4e4 !important;
         }
 
         .tab-pane {
@@ -354,23 +373,23 @@
         </div>
 
         <div id="buttonGroupSection" class="button-group padding-top-10 hide_ele">
-            <button onclick="copyTextWithNewLine('Gap:')" class="btn btn-warning btn-sm">Split Msg</button>
+            <button data-action="copy-with" data-value="Gap:" class="btn btn-warning btn-sm">Split Msg</button>
             <div class="hide_ele">
-                <button onclick="copyTextWithNewLine('RP-##NL')" class="btn btn-warning btn-sm hide_ele">Hyphen to new
+                <button data-action="copy-with" data-value="RP-##NL" class="btn btn-warning btn-sm hide_ele">Hyphen to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP.##NL')" class="btn btn-warning btn-sm hide_ele">Dot to new
+                <button data-action="copy-with" data-value="RP.##NL" class="btn btn-warning btn-sm hide_ele">Dot to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP..##NL')" class="btn btn-warning btn-sm">Double dot to new
+                <button data-action="copy-with" data-value="RP..##NL" class="btn btn-warning btn-sm">Double dot to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP*##NL')" class="btn btn-warning btn-sm">Star to new
+                <button data-action="copy-with" data-value="RP*##NL" class="btn btn-warning btn-sm">Star to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP++##NL')" class="btn btn-warning btn-sm">Double plus to new
+                <button data-action="copy-with" data-value="RP++##NL" class="btn btn-warning btn-sm">Double plus to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP--##NL')" class="btn btn-warning btn-sm">Double hyphen to new
+                <button data-action="copy-with" data-value="RP--##NL" class="btn btn-warning btn-sm">Double hyphen to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP...##NL')" class="btn btn-warning btn-sm">Triple dot to new
+                <button data-action="copy-with" data-value="RP...##NL" class="btn btn-warning btn-sm">Triple dot to new
                     line</button>
-                <button onclick="copyTextWithNewLine('RP.##-')" class="btn btn-warning btn-sm">Dot to hyphen</button>
+                <button data-action="copy-with" data-value="RP.##-" class="btn btn-warning btn-sm">Dot to hyphen</button>
             </div>
         </div>
         <ul class="tab-nav" id="myTab" role="tablist">
@@ -389,8 +408,8 @@
             <div class="tab-pane active" id="input-tab-pane" role="tabpanel">
                 <div class="row">
                     <div class="col">
-                        <label for="inputData">Input Data <a href="#" onclick="copyWhatsappInput()"
-                                title="Copy">Copy</a></label>
+                        <label for="inputData">Input Data <a href="#" data-action="copy-whatsapp"
+                            title="Copy">Copy</a></label>
                         <textarea id="inputData" class="input-textarea" rows="25"
                             placeholder="Paste WhatsApp data here..."></textarea>
                     </div>
@@ -400,9 +419,13 @@
                             placeholder="Paste copilot generated data here..."></textarea>
                     </div>
                     <div class="col">
+                        <label for="googleVisionApiKey">Google Vision API Key</label>
+                        <input type="password" id="googleVisionApiKey" class="form-control"
+                            placeholder="Google Vision API Key for OCR">
                         <label for="outputData">Replace amount - (Example:1DTkt=1dTkt30,1DTkt20=1DTkt30)</label>
                         <textarea id="amountMapping" class="output-area" rows="5"
                             placeholder="Amount mapping 1DTkt=1dTkt30,1DTkt20=1DTkt30"></textarea>
+                        <p id="available-amount-keys" class="available-amount-keys"></p>
                         <label for="1dRecordLimit" class="form-label">1D record limit:</label>
                         <input type="text" id="1dRecordLimit" class="form-control"
                             placeholder="1D record limit (default 100)" value="50">
