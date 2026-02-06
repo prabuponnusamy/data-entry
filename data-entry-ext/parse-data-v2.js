@@ -241,7 +241,9 @@ function parseMessages() {
             // If line contains only date like 
             // Replace double .. with single .
             // replace double ,, or spaces with single space
-            line = line.replace(/₹/ig, 'RS')
+            line = line.replace(/₹/ig, 'RS');
+            line = line.replace(/\$/ig, 'RS');
+            line = line.replace(/ரூ./ig, 'RS');
             line = line.replace(/\d{2}-\d{2}-\d{4}/, '').trim();
             line = line.replace(/KL[^a-zA-Z0-9]*(\d+)?/g, '').trim();
             line = line.replace(/\d+[^a-zA-Z0-9]*DIGIT/g, '').trim();
@@ -286,7 +288,7 @@ function parseMessages() {
             line = line.replace("ABBCAC", "ALL"); // replace multiple spaces with single space
             line = line.replaceAll('ECH', 'EACH'); // replace multiple spaces with single space
             line = line.replace('ALL', ' ALL '); // add space before ALL to avoid partial match
-            line = line.replace(/\((\d+(?:\.\d+)?)\)/g, "RS $1");
+            line = line.replace(/^\((\d+(?:\.\d+)?)\)$/g, "RS $1");
 
             line = cleanupLine(line);
             // If value matches AB BC AC with any combination or any special characters between them replace with ALL
@@ -545,6 +547,7 @@ function parseMessages() {
         // Message context
         var messageContext = {};
         var lastQtyIndex = -1;
+        var lastTargetIndex = -1;
         //lines = lines.filter(line => line['data'] && line['data'].length > 0 || line['qty'] || line['target'] || line['amount'] || line['isBox'] || line['isOff'] || line['cut']);
         for (i = 0; i < lines.length; i++) {
             line = lines[i];
@@ -568,6 +571,13 @@ function parseMessages() {
                 messageContext['qtyContext'].push({ qty: line['qty'], fromIndex: lastQtyIndex == -1 ? 0 : lastQtyIndex + 1, toIndex: i });
                 lastQtyIndex = i;
             }
+            if (line['target']) {
+                if (!messageContext['targetContext']) {
+                    messageContext['targetContext'] = [];
+                }
+                messageContext['targetContext'].push({ target: line['target'], fromIndex: lastTargetIndex == -1 ? 0 : lastTargetIndex + 1, toIndex: i });
+                lastTargetIndex = i;
+            }
         }
         if (messageContext['qtyContext'] && messageContext['qtyContext'].length > 1) {
             var fromIndex = messageContext['qtyContext'][0]['fromIndex'];
@@ -577,7 +587,6 @@ function parseMessages() {
                 // do nothing for now
             } else {
                 for (i = 0; i < messageContext['qtyContext'].length; i++) {
-                    var messageQtyContext = messageContext['qtyContext'][i];
                     var qtyCtx = messageContext['qtyContext'][i];
                     if (i < messageContext['qtyContext'].length - 1) {
                         var nextQtyCtx = messageContext['qtyContext'][i + 1];
@@ -589,7 +598,27 @@ function parseMessages() {
                     }
                 }
             }
-
+        }
+        const targetContext = messageContext['targetContext'];
+        if (targetContext && targetContext.length > 1) {
+            var fromIndex = targetContext[0]['fromIndex'];
+            var toIndex = targetContext[0]['toIndex'];
+            dataLines = lines.slice(fromIndex, toIndex).filter(line => line['data'] && line['data'].length > 0);
+            if (dataLines.length > 0) {
+                // do nothing for now
+            } else {
+                for (i = 0; i < targetContext.length; i++) {
+                    var targetCtx = targetContext[i];
+                    if (i < targetContext.length - 1) {
+                        var nextTargetCtx = targetContext[i + 1];
+                        targetCtx['fromIndex'] = nextTargetCtx['fromIndex'];
+                        targetCtx['toIndex'] = nextTargetCtx['toIndex'];
+                    } else {
+                        targetCtx['fromIndex'] = targetCtx['toIndex'] + 1;
+                        targetCtx['toIndex'] = lines.length - 1;
+                    }
+                }
+            }
         }
         console.log('Message Context:', JSON.stringify(messageContext));
 
@@ -657,6 +686,59 @@ function parseMessages() {
                                     line['data'].forEach((d) => {
                                         if (!d['qty'] || d['qty'] == '') {
                                             d['qty'] = messageQty;
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            // Target context
+            if (targetContext && targetContext.length > 0) {
+                if (targetContext.length == 1) {
+                    messageQty = targetContext[0]['target'];
+                    if (line['data'] && line['data'].length > 0) {
+                        if (line['data'].length == 1) {
+                            d = line['data'][0];
+                            if (!d['target'] || d['target'] == '') {
+                                d['target'] = messageQty;
+                            } else {
+                                lastQty = d['target'];
+                                if (lastQty.length == d['number'].length) {
+                                    d['target'] = messageQty;
+                                    line['data'].push({ number: lastQty, target: messageQty });
+                                }
+                            }
+                        } else {
+                            line['data'].forEach((d) => {
+                                if (!d['target'] || d['target'] == '') {
+                                    d['target'] = messageQty;
+                                }
+                            });
+                        }
+                    }
+                } else if (targetContext.length > 1) {
+                    targetContext.forEach((targetCtxl) => {
+                        if (idx >= targetCtxl['fromIndex'] && idx <= targetCtxl['toIndex']) {
+                            messageQty = targetCtxl['target'];
+                            if (line['data'] && line['data'].length > 0) {
+                                if (line['data'].length == 1) {
+                                    d = line['data'][0];
+                                    if (!d['target'] || d['target'] == '') {
+                                        d['target'] = messageQty;
+                                    } else {
+                                        lastQty = d['target'];
+                                        if (lastQty.length == d['number'].length) {
+                                            d['target'] = messageQty;
+                                            line['data'].push({ number: lastQty, target: messageQty });
+                                        } else {
+                                        }
+                                    }
+                                } else {
+                                    line['data'].forEach((d) => {
+                                        if (!d['target'] || d['target'] == '') {
+                                            d['target'] = messageQty;
                                         }
                                     });
                                 }
@@ -767,9 +849,10 @@ function parseMessages() {
                                     // Take each char from targetValue and seperate by hyphen
                                     targetValueLocal = targetValueLocal ? targetValueLocal.split('').filter(c => c !== '-').sort().join('-') : '';
                                 }
-                                if (finalBoxStatus) {
+                                /*if (finalBoxStatus) {
                                     outLines.push(`1DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
-                                } else if (isCut) {
+                                } else */
+                                 if (isCut) {
                                     outLines.push(`1DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                                 } else {
                                     outLines.push(`1DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
@@ -778,9 +861,10 @@ function parseMessages() {
                                 if (targetValueLocal == 'ABC') {
                                     targetValueLocal = 'ALL';
                                 }
-                                if (finalBoxStatus) {
+                                /*if (finalBoxStatus) {
                                     outLines.push(`2DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
-                                } else if (isCut) {
+                                } else */
+                                 if (isCut) {
                                     outLines.push(`2DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                                 } else {
                                     outLines.push(`2DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
