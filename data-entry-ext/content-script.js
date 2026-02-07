@@ -225,7 +225,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
         } else {
             valuesToInsert = value.split("\n");
         }
-
+        //alert("No of entries to insert: " + valuesToInsert.length);
         if (type === "1d_tkt") {
             let first = true;
 
