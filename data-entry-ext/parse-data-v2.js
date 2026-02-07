@@ -334,7 +334,7 @@ function parseMessages() {
                     return;
             }
             line = cleanupLine(line.replace(/\((\d+(?:\.\d+)?)\)/g, "RS $1"));
-
+            line = line.replace('TK', 'RS');
             // If line matches RS.30 or RS30 or RS 30, replace space and hyphen with empty string
             const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)[^A-Za-z0-9]*RS)\b/i);
             if (rsMatch) {
@@ -386,7 +386,7 @@ function parseMessages() {
             line = cleanupLine(line.replace(/[^A-Z0-9#]+/g, '~')).trim();
 
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
-            setMatch = line.match(/(EACH|ECH|ETC|E)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*(SET|SETS|ST|CH|CHANCE|E)+/);
+            setMatch = line.match(/(EACH|ECH|ETC|E)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*(SET|SETS|ST|CH|CHANCE|E|S)+/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[2];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -396,7 +396,7 @@ function parseMessages() {
             }
 
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
-            setMatch = line.match(/(EACH|ECH|ETC|E)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*/);
+            setMatch = line.match(/(EACH|ECH|ETC|E|S)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[2];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -405,7 +405,7 @@ function parseMessages() {
                 }
             }
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
-            setMatch = line.match(/(\d{1,5})[^A-Za-z0-9]*(SET|SETS|ST|CH|CHANCE)+/);
+            setMatch = line.match(/(\d{1,5})[^A-Za-z0-9]*(SET|SETS|ST|CH|CHANCE|E|S)+/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[1];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -413,7 +413,7 @@ function parseMessages() {
                     return;
                 }
             }
-            setMatch = line.match(/(\d{1,5})[^A-Za-z0-9]*(EACH|ECH|ETC|E)+/);
+            setMatch = line.match(/(\d{1,5})[^A-Za-z0-9]*(EACH|ECH|ETC|E|S)+/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[1];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -660,7 +660,7 @@ function parseMessages() {
                                 lastQty = d['qty'];
                                 if (lastQty.length == d['number'].length) {
                                     d['qty'] = messageQty;
-                                    line['data'].push({ number: lastQty, qty: messageQty });
+                                    line['data'].push({ number: lastQty, qty: messageQty, target: d['target'] ? d['target'] : null, amount: d['amount'] ? d['amount'] : null });
                                 }
                             }
                         } else {
@@ -684,7 +684,7 @@ function parseMessages() {
                                         lastQty = d['qty'];
                                         if (lastQty.length == d['number'].length) {
                                             d['qty'] = messageQty;
-                                            line['data'].push({ number: lastQty, qty: messageQty });
+                                            line['data'].push({ number: lastQty, qty: messageQty, target: d['target'] ? d['target'] : null, amount: d['amount'] ? d['amount'] : null });
                                         } else {
                                         }
                                     }
@@ -703,23 +703,23 @@ function parseMessages() {
             // Target context
             if (targetContext && targetContext.length > 0) {
                 if (targetContext.length == 1) {
-                    messageQty = targetContext[0]['target'];
+                    messageTarget = targetContext[0]['target'];
                     if (line['data'] && line['data'].length > 0) {
                         if (line['data'].length == 1) {
                             d = line['data'][0];
                             if (!d['target'] || d['target'] == '') {
-                                d['target'] = messageQty;
+                                d['target'] = messageTarget;
                             } else {
                                 lastQty = d['target'];
                                 if (lastQty.length == d['number'].length) {
-                                    d['target'] = messageQty;
-                                    line['data'].push({ number: lastQty, target: messageQty });
+                                    d['target'] = messageTarget;
+                                    line['data'].push({ number: lastQty, target: messageTarget, amount: d['amount'] ? d['amount'] : null });
                                 }
                             }
                         } else {
                             line['data'].forEach((d) => {
                                 if (!d['target'] || d['target'] == '') {
-                                    d['target'] = messageQty;
+                                    d['target'] = messageTarget;
                                 }
                             });
                         }
@@ -727,24 +727,24 @@ function parseMessages() {
                 } else if (targetContext.length > 1) {
                     targetContext.forEach((targetCtxl) => {
                         if (idx >= targetCtxl['fromIndex'] && idx <= targetCtxl['toIndex']) {
-                            messageQty = targetCtxl['target'];
+                            messageTarget = targetCtxl['target'];
                             if (line['data'] && line['data'].length > 0) {
                                 if (line['data'].length == 1) {
                                     d = line['data'][0];
                                     if (!d['target'] || d['target'] == '') {
-                                        d['target'] = messageQty;
+                                        d['target'] = messageTarget;
                                     } else {
                                         lastQty = d['target'];
                                         if (lastQty.length == d['number'].length) {
-                                            d['target'] = messageQty;
-                                            line['data'].push({ number: lastQty, target: messageQty });
+                                            d['target'] = messageTarget;
+                                            line['data'].push({ number: lastQty, target: messageTarget, amount: d['amount'] ? d['amount'] : null });
                                         } else {
                                         }
                                     }
                                 } else {
                                     line['data'].forEach((d) => {
                                         if (!d['target'] || d['target'] == '') {
-                                            d['target'] = messageQty;
+                                            d['target'] = messageTarget;
                                         }
                                     });
                                 }
