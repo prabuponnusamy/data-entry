@@ -139,7 +139,7 @@ function getLastInputIndex(name) {
 
 function setLastValue(name, value) {
     const el = lastInputByName(name);
-    if (el) { 
+    if (el) {
         // If value is already present alert and return error
         if (el.value && el.value.trim() !== '') {
             console.warn(`Field ${name} already has value: ${el.value}`);
@@ -244,15 +244,18 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                     setLastValue(aFieldName, num);
                     setLastValue(aQtyFieldName, qty);
 
-                } else if (targets.includes("B")) {
+                }
+                if (targets.includes("B")) {
                     setLastValue(bFieldName, num);
                     setLastValue(bQtyFieldName, qty);
 
-                } else if (targets.includes("C")) {
+                }
+                if (targets.includes("C")) {
                     setLastValue(cFieldName, num);
                     setLastValue(cQtyFieldName, qty);
 
-                } else if (targets.includes("ALL")) {
+                }
+                if (targets.includes("ALL")) {
                     setLastValue(aFieldName, num);
                     setLastValue(aQtyFieldName, qty);
 
@@ -284,15 +287,18 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                     setLastValue(abFieldName, num);
                     setLastValue(abQtyFieldName, qty);
 
-                } else if (targets.includes("BC")) {
+                }
+                if (targets.includes("BC")) {
                     setLastValue(bcFieldName, num);
                     setLastValue(bcQtyFieldName, qty);
 
-                } else if (targets.includes("AC")) {
+                }
+                if (targets.includes("AC")) {
                     setLastValue(acFieldName, num);
                     setLastValue(acQtyFieldName, qty);
 
-                } else if (targets.includes("ALL")) {
+                }
+                if (targets.includes("ALL")) {
                     setLastValue(abFieldName, num);
                     setLastValue(abQtyFieldName, qty);
 
