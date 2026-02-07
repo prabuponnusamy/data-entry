@@ -623,7 +623,7 @@ function parseMessages() {
                 }
             }
         }
-        console.log('Message Context:', JSON.stringify(messageContext));
+        //console.log('Message Context:', JSON.stringify(messageContext));
 
         for (i = 0; i < lines.length; i++) {
             line = lines[i];
@@ -814,7 +814,7 @@ function parseMessages() {
             }
             linesGroupLines.push(line);
         });
-        console.log('Lines Grouping:', JSON.stringify(linesGrouping, null, 2));
+        //console.log('Lines Grouping:', JSON.stringify(linesGrouping, null, 2));
         linesGrouping.forEach((linesGroupLinesL, lgIdx) => {
             linesGroupLinesL.forEach((line) => {
                 qtyValue = qty.length > 0 ? qty[0] : null;
@@ -1590,8 +1590,8 @@ function extractAndSaveImages(imageFiles) {
     const isWindows = navigator.platform.indexOf('Win') > -1;
     const isMac = navigator.platform.indexOf('Mac') > -1;
 
-    console.log('Detected OS - Windows:', isWindows, 'Mac:', isMac);
-    console.log('Found', imageFiles.length, 'images to extract');
+    //console.log('Detected OS - Windows:', isWindows, 'Mac:', isMac);
+    //console.log('Found', imageFiles.length, 'images to extract');
 
     // Process each image
     imageFiles.forEach(function (imageFile) {
@@ -1613,7 +1613,7 @@ function extractAndSaveImages(imageFiles) {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            console.log('Downloaded image:', filename);
+            //console.log('Downloaded image:', filename);
         });
     });
 
