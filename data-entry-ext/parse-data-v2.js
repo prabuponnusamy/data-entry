@@ -259,7 +259,8 @@ function parseMessages() {
             if (line.endsWith('*')) {
                 line = line.slice(0, -1).trim();
             }
-
+            line = line.replace('0FF', 'OFF');
+            line = line.replace('FUII', 'FULL');
             // If line starts and ends with . then remove .
             if (line.endsWith('.')) {
                 line = line.slice(0, -1).trim();
@@ -284,16 +285,18 @@ function parseMessages() {
             // replace line ₹28 with RS28
             line = line.replace(/₹/g, 'RS');
             line = line.replaceAll('CHANCE', 'SET');
+            line = 
             //line = line.replaceAll('CH', 'SET');
-            line = line.replace("ABBCAC", "ALL"); // replace multiple spaces with single space
-            line = line.replaceAll('ECH', 'EACH'); // replace multiple spaces with single space
+            line = line.replace("ABBCAC", " ALL "); // replace multiple spaces with single space
+            line = line.replaceAll('ECH', ' EACH '); // replace multiple spaces with single space
             line = line.replace('ALL', ' ALL '); // add space before ALL to avoid partial match
             line = line.replace(/^\((\d+(?:\.\d+)?)\)$/g, "RS $1");
 
             line = cleanupLine(line);
             // If value matches AB BC AC with any combination or any special characters between them replace with ALL
             // If matches AB,AC,BC,ALL,AB-BC,AC-BC,BC-AC,BC-AB
-            const tokens = line.toUpperCase().match(/\b(?:A|B|C|AB|AC|BC|ABC|ALL|ABAC|ABBC|ACBC)\b/g);
+            line = line.replace(/([A-C])/g, ' $1 ');
+            const tokens = line.toUpperCase().match(/\b(?:ABAC|ABBC|ACBC|ABC|ALL|AB|AC|BC|A|B|C)\b/g);
             if (tokens) {
                 const uniqueTokens = [...new Set(tokens)];
                 // replace the tokens from line with empty using word boundary to avoid partial match and trim the line
