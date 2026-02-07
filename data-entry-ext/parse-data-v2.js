@@ -307,6 +307,10 @@ function parseMessages() {
                 targetVal = joinedTokens;
                 if (joinedTokens === 'AB-AC-BC' || joinedTokens === 'A-B-C' || joinedTokens === 'ABC') {
                     targetVal = 'ALL';
+                } else {
+                    targetVal = targetVal.replace("ABAC", "AB-AC");
+                    targetVal = targetVal.replace("ABBC", "AB-BC");
+                    targetVal = targetVal.replace("ACBC", "AC-BC");
                 }
                 cleandMsg['target'] = targetVal;
                 if (line == '' && targetVal != '') {
