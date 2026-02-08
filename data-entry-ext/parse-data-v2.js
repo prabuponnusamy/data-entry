@@ -285,7 +285,7 @@ function parseMessages() {
             // replace line ₹28 with RS28
             line = line.replace(/₹/g, 'RS');
             line = line.replaceAll('CHANCE', 'SET');
-            
+
             line = line.replace("ABBCAC", " ALL "); // replace multiple spaces with single space
             line = line.replaceAll('ECH', ' EACH '); // replace multiple spaces with single space
             line = line.replace('ALL', ' ALL '); // add space before ALL to avoid partial match
@@ -302,6 +302,14 @@ function parseMessages() {
                 uniqueTokens.forEach(token => {
                     line = line.replace(new RegExp('\\b' + token + '\\b', 'g'), '').trim();
                 });
+
+                if (uniqueTokens.includes('ALL') && uniqueTokens.length > 1) {
+                    // If ALL is present along with other tokens, remove ALL
+                    const index = uniqueTokens.indexOf('ALL');
+                    if (index > -1) {
+                        uniqueTokens.splice(index, 1);
+                    }
+                }
                 uniqueTokens.sort();
                 const joinedTokens = uniqueTokens.join('-');
                 targetVal = joinedTokens;
@@ -336,7 +344,7 @@ function parseMessages() {
             line = cleanupLine(line.replace(/\((\d+(?:\.\d+)?)\)/g, "RS $1"));
             line = line.replace('TK', 'RS');
             // If line matches RS.30 or RS30 or RS 30, replace space and hyphen with empty string
-            const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)[^A-Za-z0-9]*RS)\b/i);
+            const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+(?:\.\d+){0,1})|(\d+(?:\.\d+){0,1})[^A-Za-z0-9]*RS)\b/i);
             if (rsMatch) {
                 cleandMsg['amount'] = rsMatch[1] || rsMatch[2];
                 line = line.replace(rsMatch[0], ' ').trim();
@@ -420,6 +428,9 @@ function parseMessages() {
                 if (line === '') {
                     return;
                 }
+            }
+            if (cleandMsg['qty']) {
+                cleandMsg['qtyVal'] = cleandMsg['qty'];
             }
 
             line = cleanupLine(line);
@@ -606,10 +617,11 @@ function parseMessages() {
             }
         }
         const targetContext = messageContext['targetContext'];
+        console.log('Target Context Before Adjustment:', JSON.stringify(targetContext));
         if (targetContext && targetContext.length > 1) {
             var fromIndex = targetContext[0]['fromIndex'];
             var toIndex = targetContext[0]['toIndex'];
-            dataLines = lines.slice(fromIndex, toIndex).filter(line => line['data'] && line['data'].length > 0);
+            dataLines = lines.slice(fromIndex, toIndex).filter(line => line['data'] && line['data'].length > 0 && line['target'] && line['target'] != '');
             if (dataLines.length > 0) {
                 // do nothing for now
             } else {
@@ -658,7 +670,7 @@ function parseMessages() {
                                 d['qty'] = messageQty;
                             } else {
                                 lastQty = d['qty'];
-                                if (lastQty.length == d['number'].length) {
+                                if (!line['qtyVal'] && lastQty.length == d['number'].length) {
                                     d['qty'] = messageQty;
                                     line['data'].push({ number: lastQty, qty: messageQty, target: d['target'] ? d['target'] : null, amount: d['amount'] ? d['amount'] : null });
                                 }
@@ -682,7 +694,7 @@ function parseMessages() {
                                         d['qty'] = messageQty;
                                     } else {
                                         lastQty = d['qty'];
-                                        if (lastQty.length == d['number'].length) {
+                                        if (!line['qtyVal'] && lastQty.length == d['number'].length) {
                                             d['qty'] = messageQty;
                                             line['data'].push({ number: lastQty, qty: messageQty, target: d['target'] ? d['target'] : null, amount: d['amount'] ? d['amount'] : null });
                                         } else {
