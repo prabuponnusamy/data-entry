@@ -137,6 +137,31 @@ function getLastInputIndex(name) {
     return list.length ? list.length - 1 : -1;
 }
 
+function insertDataAtSection(elementName, dataLine) {
+    const input = lastInputByName(elementName);
+
+    if (input) {
+        // 2️⃣ Find the parent row
+        const row = input.closest('div.row');
+        // 3️⃣ Create new sibling element
+        const newDiv = document.createElement('div');
+        newDiv.className = 'row';
+        newDiv.innerHTML = `
+            <div class="col-sm-6">
+                <div style="border-radius:1px; border-bottom:2px solid #132cd9; margin-bottom: 16px;" role="alert">
+                        <b>${dataLine}</b>
+                </div>
+            </div>
+            <div class="col-sm-6"></div>
+        `;
+        // 4️⃣ Insert as FIRST sibling (before row)
+        //row.parentNode.insertBefore(newDiv, row);
+        //row.parentNode.prepend(newDiv);
+        //insert before the row
+        row.parentNode.insertBefore(newDiv, row);
+    }
+}
+
 function setLastValue(name, value) {
     const el = lastInputByName(name);
     if (el) {
@@ -240,6 +265,8 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const qty = parts[1];
                 const targets = parts[2].toUpperCase().split("-");
 
+                // find the div class name row which contains aFieldName and find its parent and add a child div with class row as first child
+                insertDataAtSection(aFieldName, line);
                 if (targets.includes("A")) {
                     setLastValue(aFieldName, num);
                     setLastValue(aQtyFieldName, qty);
@@ -282,6 +309,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const num = parts[0];
                 const qty = parts[1];
                 const targets = parts[2].toUpperCase().split("-");
+                insertDataAtSection(abFieldName, line);
 
                 if (targets.includes("AB")) {
                     setLastValue(abFieldName, num);
@@ -329,6 +357,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
+                insertDataAtSection(abcFieldName, line);
 
                 setLastValue(abcFieldName, num);
                 setLastValue(abcQtyFieldName, qty);
@@ -347,6 +376,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
+                insertDataAtSection(abcdeFieldName, line);
 
                 const nums = document.getElementsByName(abcdeFieldName);
                 const qtys = document.getElementsByName(abcdeQtyFieldName);
