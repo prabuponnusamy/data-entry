@@ -77,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     inputData: inputData,
                     quantity: quantity,
                     scriptVersion: scriptVersion,
-                    target1D2D: target1D2D
+                    target1D2D: target1D2D,
+                    showData: document.getElementById('showDataChkbox').checked ? true : false
                 }, (response) => {
                     console.log('Response from content script:', response);
                 });

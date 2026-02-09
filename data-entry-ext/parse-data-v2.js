@@ -206,7 +206,10 @@ function parseMessages() {
                 //8
                 "DEAR 8PM",
                 "DEAR1PM",
+                "DEAR 1PM",
+                "DEAR 1 PM",
                 "DEAR8PM",
+                "DEAR 8 PM",
                 "DEAR-8",
                 "DEAR 8",
                 "DEAR8",

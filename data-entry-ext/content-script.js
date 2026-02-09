@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === 'insertData') {
         //handleInsertData(request.ticketType, request.inputData, sendResponse);
         //alert('Insert Data action received in content script' + request.ticketType + ' ' + request.inputData);
-        handleInsertData(request.ticketType, request.inputData, request.quantity, request.scriptVersion, request.target1D2D);
+        handleInsertData(request.ticketType, request.inputData, request.quantity, request.scriptVersion, request.target1D2D, request.showData);
         return true; // keep the message channel open for async response
     } else if (request.action === 'clearData') {
         //handleInsertData(request.ticketType, request.inputData, sendResponse);
@@ -137,10 +137,10 @@ function getLastInputIndex(name) {
     return list.length ? list.length - 1 : -1;
 }
 
-function insertDataAtSection(elementName, dataLine) {
+function insertDataAtSection(elementName, dataLine, showData) {
     const input = lastInputByName(elementName);
 
-    if (input) {
+    if (input && showData) {
         // 2️⃣ Find the parent row
         const row = input.closest('div.row');
         // 3️⃣ Create new sibling element
@@ -188,7 +188,11 @@ function handleClearData() {
         clearButtons.forEach(btn => btn.click());
         // take all input fields and clear their values
         const inputFields = document.querySelectorAll('input[type="text"], input[type="number"]');
-        // name matching in const field names
+        inputFields.forEach(input => {
+            if (input.name !== 'date') {
+                input.value = '';
+            }
+        });  // name matching in const field names
     } catch (error) {
         console.error('Error handling clear data:', error);
     }
@@ -198,9 +202,9 @@ function handleClearData() {
  * Handle Insert Data from popup
  * Processes ticket type and input data
  */
-function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
+function handleInsertData(type, value, quantity, scriptVersion, target1D2D, showData) {
     try {
-        console.log('Processing Insert Data:', { type, value, quantity, scriptVersion, target1D2D });
+        console.log('Processing Insert Data:', { type, value, quantity, scriptVersion, target1D2D, showData });
 
         // Validate inputs
         if (!type || type === 'select') {
@@ -266,7 +270,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const targets = parts[2].toUpperCase().split("-");
 
                 // find the div class name row which contains aFieldName and find its parent and add a child div with class row as first child
-                insertDataAtSection(aFieldName, line);
+                insertDataAtSection(aFieldName, line, showData);
                 if (targets.includes("A")) {
                     setLastValue(aFieldName, num);
                     setLastValue(aQtyFieldName, qty);
@@ -309,7 +313,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const num = parts[0];
                 const qty = parts[1];
                 const targets = parts[2].toUpperCase().split("-");
-                insertDataAtSection(abFieldName, line);
+                insertDataAtSection(abFieldName, line, showData);
 
                 if (targets.includes("AB")) {
                     setLastValue(abFieldName, num);
@@ -357,7 +361,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
-                insertDataAtSection(abcFieldName, line);
+                insertDataAtSection(abcFieldName, line, showData);
 
                 setLastValue(abcFieldName, num);
                 setLastValue(abcQtyFieldName, qty);
@@ -376,7 +380,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D) {
                 const parts = line.split(",");
                 const num = parts[0];
                 const qty = parts[1];
-                insertDataAtSection(abcdeFieldName, line);
+                insertDataAtSection(abcdeFieldName, line, showData);
 
                 const nums = document.getElementsByName(abcdeFieldName);
                 const qtys = document.getElementsByName(abcdeQtyFieldName);
