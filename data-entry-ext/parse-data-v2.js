@@ -229,6 +229,7 @@ function parseMessages() {
                 "DR 8",
                 "DR 3",
                 "DR",
+                "KL",
                 "BOARD",
                 "BORD"
             ];
@@ -245,7 +246,7 @@ function parseMessages() {
             line = line.replace(/\$/ig, 'RS');
             line = line.replace(/ரூ./ig, 'RS');
             line = line.replace(/\d{2}-\d{2}-\d{4}/, '').trim();
-            line = line.replace(/KL[^a-zA-Z0-9]*(\d+)?/g, '').trim();
+            line = line.replace('KL', '').trim();
             line = line.replace(/\d+[^a-zA-Z0-9]*DIGIT/g, '').trim();
             line = line.replace(/\.{2,}/g, '.').trim();
             line = line.replace(/,{2,}/g, ',').trim();
@@ -325,7 +326,9 @@ function parseMessages() {
                     lastTarget = targetVal;
                 }
             }
-
+            if (line == '') {
+                return;
+            }
             if (line.includes('CUTTING')) {
                 // consider as empty line
                 cleandMsg['cut'] = true;
@@ -344,7 +347,7 @@ function parseMessages() {
             line = cleanupLine(line.replace(/\((\d+(?:\.\d+)?)\)/g, "RS $1"));
             line = line.replace('TK', 'RS');
             // If line matches RS.30 or RS30 or RS 30, replace space and hyphen with empty string
-            const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+(?:\.\d+){0,1})|(\d+(?:\.\d+){0,1})[^A-Za-z0-9]*RS)\b/i);
+            const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+)|(\d+)[^A-Za-z0-9]*RS)\b/i);
             if (rsMatch) {
                 cleandMsg['amount'] = rsMatch[1] || rsMatch[2];
                 line = line.replace(rsMatch[0], ' ').trim();
@@ -354,7 +357,7 @@ function parseMessages() {
             }
 
             //DEAR 120             1747          4       ₹3450.00
-            const dearMatch = line.match(/DEAR\s+(\d+)\s+(\d+)\s+(\d+)/);
+            const dearMatch = line.match(/^DEAR\s+(\d+)\s+(\d+)\s+(\d+)$/);
             // assign 120 as amt, 1747 as number and 4 as qty
             if (dearMatch) {
                 cleandMsg['amount'] = dearMatch[1];
@@ -363,7 +366,7 @@ function parseMessages() {
                 return;
             }
             const dear2Match = line.match(
-                /DEAR2\s+(\d+)\s+(AC|BC|AB|A|B|C)\s*(\d{1,5})\s+(\d+)/i
+                /^DEAR\s+(\d+)\s+(AC|BC|AB|A|B|C)\s*(\d{1,5})\s+(\d+)$/i
             );
 
             if (dear2Match) {
@@ -379,7 +382,7 @@ function parseMessages() {
 
 
             // 120  -  2419  =  1
-            const dearHyphenMatch = line.match(/(\d+)\s*-\s*(\d+)\s*=\s*(\d+)/);
+            const dearHyphenMatch = line.match(/^(\d+)\s*-\s*(\d+)\s*=\s*(\d+)$/);
             // assign 120 as amt, 2419 as number and 1 as qty
             if (dearHyphenMatch) {
                 cleandMsg['amount'] = dearHyphenMatch[1];
@@ -914,6 +917,10 @@ function parseMessages() {
                             }
                         }
                     });
+                } else {
+                    if (line['nparsed']) {
+                        outLines.push(`${FAILED_TO_PARSE}: ${line['originalLine']}`);
+                    }
                 }
             });
         });
@@ -1034,8 +1041,9 @@ function generateTable() {
 
     for (let i = 0; i < maxLen; i++) {
         const inputMsg = inputGroups[i] ? inputGroups[i].join('\n') : '';
-        const outputMsg = outGroups[i] ? outGroups[i].filter(l => l.trim() && !l.includes(FAILED_TO_PARSE)).join('\n') : '';
-        const show = !showFailedParsing || outputMsg.includes(FAILED_TO_PARSE);
+        const outputMsg = outGroups[i] ? outGroups[i].filter(l => l.trim()).join('\n') : '';
+        const isFailedParsing = outputMsg.includes(FAILED_TO_PARSE);
+        const show = !showFailedParsing || isFailedParsing;
         imagePath = outputMsg.toUpperCase().replace('ATTACHMENT:', '').trim();
         const imageUrl = imageMap.get(imagePath);
         //console.log('Looking for image with key:', imagePath);
@@ -1051,7 +1059,10 @@ function generateTable() {
         // How to set focus on textarea after generating table - set focus on first textarea only
         tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1} <button class="delete-row-btn">Delete</button></td>
             <td><textarea id="original-msg-${i}" name="original-msg" class="original-msg" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea>${imgHtml}</td>
-            <td><textarea id="formatted-msg-${i}" name="formatted-msg" class="formatted-msg" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea></td></tr>`;
+            <td>
+                <textarea id="formatted-msg-${i}" name="formatted-msg" class="formatted-msg ${isFailedParsing ? 'error-output' : ''}" data-error="${isFailedParsing ? 'true' : 'false'}" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea>
+            </td>
+            </tr>`;
     }
 
     tableHTML += `</tbody></table>`;
@@ -1325,6 +1336,14 @@ function generateFinalOutput() {
         values = content.split('\n').filter(line => line.replaceAll('"', '').trim() !== '');
         totalRecords += values.length;
         values.forEach(line => {
+            if (line.includes(FAILED_TO_PARSE)) {
+                errorMessages.push('Failed to parse: ' + line + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
+                // set color to red for textarea
+                textarea.classList.add('error-output');
+                // Add a attribute data-error to textarea
+                textarea.setAttribute('data-error', 'true');
+                return;
+            }
             valueSplits = line.split(',');
             // when value 1 is not number
             if (valueSplits.length < 3) {
