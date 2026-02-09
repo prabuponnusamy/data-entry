@@ -198,13 +198,19 @@
 
         <!-- Status Tab -->
         <div id="status-tab" class="tab-content active">
-            <div class="content">
+            <div class="content" style="font-size: 13px; font-weight: 600;">
                 <div class="content-row">
                     <div class="content-main">
-                        <label for="inputAreaField" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">Input Data:</label>
-                        <textarea id="inputAreaField" rows="10" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical;"></textarea>
-                        <label for="tkt_option" style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">Ticket Type:</label>
-                        <select id="tkt_option" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                        <label for="inputAreaField"
+                            style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">Input
+                            Data:</label>
+                        <textarea id="inputAreaField" rows="10"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical;"></textarea>
+                        <label for="tkt_option"
+                            style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;">Ticket
+                            Type:</label>
+                        <select id="tkt_option"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                             <option value="select">Select</option>
                             <option value="1d_tkt">1D Ticket</option>
                             <option value="2d_tkt">2D Ticket</option>
@@ -215,25 +221,39 @@
                             <option value="5d_tkt">5D Ticket</option>
                         </select>
                         <!-- Radio button Entry with 2024, PDF, 2026-->
-                        <label for="script_version" style="display: block; margin: 8px 0; font-size: 13px; font-weight: 600;">Entry Type:</label>
-                        <select id="script_version" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                        <label for="script_version"
+                            style="display: block; margin: 8px 0; font-size: 13px; font-weight: 600;">Entry
+                            Type:</label>
+                        <select id="script_version"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                             <option value="2024">2024</option>
                             <option value="PDF">PDF</option>
                             <option value="2026" selected="selected">2026</option>
                         </select>
                     </div>
                     <div class="content-side">
-                        <label for="qty_option" style="display: block; margin: 8px 0; font-size: 13px; font-weight: 600;">Quantity (2024 Only):</label>
-                        <input type="number" id="qty_option" min="1" value="1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
-                        <label for="1D2D_target" style="display: block; margin: 8px 0; font-size: 13px; font-weight: 600;">Target (1D or 2D) (2024 & PDF only):</label>   
-                        <select id="1D2D_target" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                        <label for="qty_option"
+                            style="display: block; margin-bottom: 8px; ">Quantity (2024
+                            Only):</label>
+                        <input type="number" id="qty_option" min="1" value="1"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                        <label for="1D2D_target"
+                            style="display: block; margin: 8px 0; font-size: 13px; font-weight: 600;">Target (1D or 2D)
+                            (2024 & PDF only):</label>
+                        <select id="1D2D_target"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                             <option value="ALL">ALL</option>
                             <option value="AB/A">1D A or 2D AB</option>
                             <option value="AC/B">1D B or 2D AC</option>
                             <option value="BC/C">1D C or 2D BC</option>
                         </select>
-                        <button id="clearBtn" style="margin-top: 16px; background: #e0e0e0; color: #333; border: 1px solid #ccc;">Clear</button>
-                        <button id="insertBtn">Insert Data</button>
+                        <div style="display: block; margin: 8px 0 4px 0;"><label for="showDataChkbox"
+                                style="font-size: 13px; font-weight: 600;">Show Data:</label>
+                            <input type="checkbox" id="showDataChkbox">
+                        </div>
+                        <button id="clearBtn"
+                            style="margin-top: 4px; background: #e0e0e0; color: #333; border: 1px solid #ccc;">Clear</button>
+                        <button id="insertBtn" style="margin-top: 4px;">Insert Data</button>
                     </div>
                 </div>
             </div>
