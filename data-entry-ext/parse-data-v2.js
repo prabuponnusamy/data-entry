@@ -13,7 +13,8 @@ const dict = {
     ech: "EACH",
     ch: "SET",
     st: "SET",
-    chance: "SET"
+    chance: "SET",
+    seat: "SET",
 };
 
 // ============================================================================
@@ -94,6 +95,75 @@ function parseMessages() {
     var parsedData = [];
     var groupedOutLines = [];
     groupsUpdated = [];
+    // replace board ''
+    const replacements = [
+        "3DIGIT",
+        "FOUR DIGIT",
+        "KERALA 3 PM",
+        "KERALA 3",
+        "KERALA",
+        "PM.3",
+        "DR.1",
+        "DIAR",
+        "DEAR 6PM",
+        "DEAR6PM",
+        "DEAR6",
+        "DEAR 6",
+        "DEAR 1 PM",
+        "DEAR 1",
+        "DEAR1",
+        "DEAR-1",
+        "DEER",
+        "DIAR",
+        "PORT",
+        //8
+        "DEAR 8PM",
+        "DEAR1PM",
+        "DEAR 1PM",
+        "DEAR 1 PM",
+        "DEAR8PM",
+        "DEAR 8 PM",
+        "DEAR-8",
+        "DEAR 8",
+        "DEAR8",
+        "DR.8",
+        "1.PM",
+        "1 PM",
+        "1PM",
+        "8PM",
+        "6PM",
+        "3.PM",
+        "3 PM",
+        "6.PM",
+        "3-00 PM",
+        "3.00 PM",
+        "3•00 PM",
+        "CLOSING",
+        "3PM",
+        "DEAR",
+        "DR 1",
+        "DR 6",
+        "DR 8",
+        "DR 3",
+        "DR",
+        "KL3",
+        "KL 3",
+        "KL.3",
+        "KL 6",
+        "KL.6",
+        "KL 8",
+        "KL.8",
+        "KL 1",
+        "KL.1",
+        "KL 8",
+        "KL",
+        "BOARD",
+        "4D",
+        "3D",
+        "2D",
+        "PM",
+        "BORD"
+    ].sort((a, b) => b.length - a.length); // Sort by length in descending order to replace longer matches first
     groups.forEach((msg, index) => {
         lines = [];
         replace = {};
@@ -186,65 +256,48 @@ function parseMessages() {
             }
             line = fixWords(line);
 
-            // replace board ''
-            const replacements = [
-                "KERALA 3",
-                "KERALA",
-                "PM.3",
-                "DR.1",
-                "DIAR",
-                "DEAR 6PM",
-                "DEAR6PM",
-                "DEAR6",
-                "DEAR 6",
-                "DEAR 1 PM",
-                "DEAR 1",
-                "DEAR1",
-                "DEAR-1",
-                "DEER",
-                "DIAR",
-                //8
-                "DEAR 8PM",
-                "DEAR1PM",
-                "DEAR 1PM",
-                "DEAR 1 PM",
-                "DEAR8PM",
-                "DEAR 8 PM",
-                "DEAR-8",
-                "DEAR 8",
-                "DEAR8",
-                "DR.8",
-                "1.PM",
-                "1 PM",
-                "1PM",
-                "8PM",
-                "6PM",
-                "3.PM",
-                "3 PM",
-                "6.PM",
-                "3-00 PM",
-                "3.00 PM",
-                "3•00 PM",
-                "3PM",
-                "DEAR",
-                "DR 1",
-                "DR 6",
-                "DR 8",
-                "DR 3",
-                "DR",
-                "KL",
-                "BOARD",
-                "BORD"
-            ];
             replacements.forEach(item => {
                 line = line.replace(item, "");
             });
-
+            cleanedLine = '';
+            lastCharType = '';
+            for (i = 0; i < line.length; i++) {
+                char = line.charAt(i);
+                const isAlphabet = char.match(/[A-Z]/i);
+                const isDigit = char.match(/[0-9]/);
+                const isSpecialChar = char.match(/[^A-Za-z0-9]/);
+                if (isAlphabet) {
+                    if (lastCharType && lastCharType !== 'alpha') {
+                        cleanedLine += ' ';
+                    }
+                    lastCharType = 'alpha';
+                } else if (isDigit) {
+                    if (lastCharType && lastCharType !== 'digit') {
+                        cleanedLine += ' ';
+                    }
+                    lastCharType = 'digit';
+                } else if (isSpecialChar) {
+                    if (lastCharType && lastCharType !== 'special') {
+                        cleanedLine += ' ';
+                    }
+                    lastCharType = 'special';
+                }
+                cleanedLine += char;
+            }
+            line = cleanedLine.replace(/\s+/g, ' ').trim();
+            /*line = line.split(' ').map(word => {
+                if (word.length > 1 && word.match(/[A-Z]/i)) {
+                    return get_valid_word(word).toUpperCase();
+                }
+                return word.toUpperCase();
+                }).filter(word => word !== '').join(' ');*/
+            cleandMsg['cleanedLine'] = line;
 
 
             // If line contains only date like 
             // Replace double .. with single .
             // replace double ,, or spaces with single space
+            line = line.replace(/\bD\b/ig, '').trim();
             line = line.replace(/₹/ig, 'RS');
             line = line.replace(/\$/ig, 'RS');
             line = line.replace(/ரூ./ig, 'RS');
@@ -256,6 +309,13 @@ function parseMessages() {
             line = line.replace(/\s{2,}/g, ' ').trim();
             line = line.replace('HALF', 'OFF');
             line = line.replace('HAFF', 'OFF');
+            // line = line.replace(/(\d{1,2}\s*(?:[.:]\d{2})?(?:[.:])?\s*(?:AM|PM))/i, '').trim();
+
+            line = line.replace('ONE', '1');
+            line = line.replace('TWO', '2');
+            line = line.replace('DABC', 'ABC');
+            // Replace ALLLL or ALLL with ALL
+            line = line.replace(/\bALLL+\b/g, 'ALL').trim();
             // If line start and end with * then remove *
             if (line.startsWith('*')) {
                 line = line.slice(1).trim();
@@ -294,6 +354,7 @@ function parseMessages() {
             line = line.replaceAll('ECH', ' EACH '); // replace multiple spaces with single space
             line = line.replace('ALL', ' ALL '); // add space before ALL to avoid partial match
             line = line.replace(/^\((\d+(?:\.\d+)?)\)$/g, "RS $1");
+
 
             line = cleanupLine(line);
             // If value matches AB BC AC with any combination or any special characters between them replace with ALL
@@ -350,12 +411,21 @@ function parseMessages() {
             line = cleanupLine(line.replace(/\((\d+(?:\.\d+)?)\)/g, "RS $1"));
             line = line.replace('TK', 'RS');
             // If line matches RS.30 or RS30 or RS 30, replace space and hyphen with empty string
-            const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+)|(\d+)[^A-Za-z0-9]*RS)\b/i);
+            const rsMatch = line.match(/\b(?:RS[^A-Za-z0-9]*(\d+))\b/i);
             if (rsMatch) {
-                cleandMsg['amount'] = rsMatch[1] || rsMatch[2];
+                cleandMsg['amount'] = rsMatch[1];
                 line = line.replace(rsMatch[0], ' ').trim();
                 if (line === '') {
                     return;
+                }
+            } else {
+                rsSuffixMatch = line.match(/\b(\d+)[^A-Za-z0-9]*RS\b/i);
+                if (rsSuffixMatch) {
+                    cleandMsg['amount'] = rsSuffixMatch[1];
+                    line = line.replace(rsSuffixMatch[0], ' ').trim();
+                    if (line === '') {
+                        return;
+                    }
                 }
             }
 
@@ -400,7 +470,7 @@ function parseMessages() {
             line = cleanupLine(line.replace(/[^A-Z0-9#]+/g, '~')).trim();
 
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
-            setMatch = line.match(/(EACH|ECH|ETC|E)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*(SET|SETS|ST|CH|CHANCE|E|S)+/);
+            setMatch = line.match(/(EACH|ECH|ETC|E)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*(SET|SETS|SAT|SAF|ST|CH|CHANCE|E|S|P)+/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[2];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -410,7 +480,7 @@ function parseMessages() {
             }
 
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
-            setMatch = line.match(/(EACH|ECH|ETC|E|S)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*/);
+            setMatch = line.match(/(EACH|ECH|ETC|SET|E|S)+[^A-Za-z0-9]*(\d{1,5})[^A-Za-z0-9]*/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[2];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -419,7 +489,7 @@ function parseMessages() {
                 }
             }
             // Check line matches 813..2set then get 813 and 2 - 557. 2SET
-            setMatch = line.match(/(\d{1,5})[^A-Za-z0-9]*(SET|SETS|ST|CH|CHANCE|E|S)+/);
+            setMatch = line.match(/(\d{1,5})[^A-Za-z0-9]*(SET|SETS|SAT|SAF|ST|CH|CHANCE|E|S|P)+/);
             if (setMatch) {
                 cleandMsg['qty'] = setMatch[1];
                 line = line.replace(setMatch[0], ' ').trim();
@@ -922,7 +992,7 @@ function parseMessages() {
                     });
                 } else {
                     if (line['nparsed']) {
-                        outLines.push(`${FAILED_TO_PARSE}: ${line['originalLine']}`);
+                        outLines.push(`${FAILED_TO_PARSE}: ${line['cleanedLine'] ? line['cleanedLine'] : line['originalLine']}`);
                     }
                 }
             });
@@ -930,7 +1000,7 @@ function parseMessages() {
         groupedOutLines.push(outLines.length > 0 ? outLines.join('\n') : '\n' + FAILED_TO_PARSE + '\n');
     });
     //console.log(JSON.stringify(parsedData, null, 2));
-    document.getElementById('outputData').value = groupedOutLines.join('\n---\n');
+    document.getElementById('outputData').value = groupedOutLines.join('\n=-#-#-=\n');
     return groupedOutLines;
 }
 
@@ -1029,7 +1099,7 @@ function generateTable() {
     let outGroups = [];
     let outMsg = [];
     outLines.forEach(line => {
-        if (line.includes('---')) {
+        if (line.includes('=-#-#-=')) {
             if (outMsg.length) outGroups.push(outMsg);
             outMsg = [];
         } else {
@@ -1843,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('copyEditedDataBtn')?.addEventListener('click', () => {
         const msgs = document.querySelectorAll('.formatted-msg');
         let value = '';
-        msgs.forEach(ta => value += ta.value + '\n---\n');
+        msgs.forEach(ta => value += ta.value + '\n=-#-#-=\n');
         document.getElementById('outputData').value = value;
     });
 
