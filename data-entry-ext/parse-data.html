@@ -40,6 +40,14 @@
             font-weight: 600;
         }
 
+        span.winning-number {
+            font-size: 18px;
+            font-weight: bold;
+            opacity: 1;
+            transform: scale(1);
+            transition: all 0.6s ease;
+        }
+
         .subtitle {
             font-size: 14px;
             color: #666;
@@ -78,6 +86,15 @@
             margin-bottom: 6px;
             font-weight: 600;
             color: #333;
+        }
+
+        label.normal-label {
+            display: inline-block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            margin-right: 16px;
+            margin-left: 16px;
         }
 
         textarea {
@@ -141,6 +158,14 @@
             font-family: 'Courier New', monospace;
             resize: vertical;
             padding: 10px;
+        }
+
+        input[type="text"].small-input {
+            width: 60px;
+        }
+
+        input[type="text"].medium-input {
+            width: 120px;
         }
 
         input[type="password"] {
@@ -251,6 +276,13 @@
             margin: 16px 0;
         }
 
+        .section-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
         /* Sticky header bar for controls */
         .header-section {
             padding-top: 10px;
@@ -278,6 +310,14 @@
 
         .header-section .form-check-input {
             margin-left: 12px;
+        }
+
+        .margin-top-small {
+            margin-top: 8px;
+        }
+
+        .margin-bottom-small {
+            margin-bottom: 8px;
         }
 
         .available-amount-keys {
@@ -312,6 +352,7 @@
             color: #333;
             background: #f5f5f5;
         }
+
         textarea {
             line-height: 2;
         }
@@ -354,6 +395,30 @@
         .hide_ele {
             display: none;
         }
+
+        .lottery-winning-number {
+            display: inline-block;
+            margin-left: 20px;
+            font-weight: 700;
+            font-size: 28px;
+            color: #d97706;
+            /* rich amber */
+            animation: popGlow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes popGlow {
+            0% {
+                transform: scale(1);
+                text-shadow: 0 0 4px rgba(217, 119, 6, 0.3);
+            }
+
+            100% {
+                transform: scale(1.25);
+                text-shadow:
+                    0 0 8px rgba(217, 119, 6, 0.6),
+                    0 0 18px rgba(255, 200, 0, 0.4);
+            }
+        }
     </style>
 </head>
 
@@ -370,7 +435,7 @@
             <button id="saveInputDataBtn" class="btn btn-secondary btn-sm">Save Input</button>
 
             <a href="#status-message" class="btn btn-primary btn-sm" title="Go to Top">Top</a>
-            
+
             <div class="hide_ele">
                 <button id="showOnlyErrorsBtn" class="btn btn-error btn-sm">Show Errors</button>
                 <button id="showAllBtn" class="btn btn-primary btn-sm">Show All</button>
@@ -385,7 +450,8 @@
         <div id="buttonGroupSection" class="button-group padding-top-10 hide_ele">
             <button data-action="copy-with" data-value="Gap:" class="btn btn-warning btn-sm">Split Msg</button>
             <div class="hide_ele">
-                <button data-action="copy-with" data-value="RP-##NL" class="btn btn-warning btn-sm hide_ele">Hyphen to new
+                <button data-action="copy-with" data-value="RP-##NL" class="btn btn-warning btn-sm hide_ele">Hyphen to
+                    new
                     line</button>
                 <button data-action="copy-with" data-value="RP.##NL" class="btn btn-warning btn-sm hide_ele">Dot to new
                     line</button>
@@ -395,11 +461,13 @@
                     line</button>
                 <button data-action="copy-with" data-value="RP++##NL" class="btn btn-warning btn-sm">Double plus to new
                     line</button>
-                <button data-action="copy-with" data-value="RP--##NL" class="btn btn-warning btn-sm">Double hyphen to new
+                <button data-action="copy-with" data-value="RP--##NL" class="btn btn-warning btn-sm">Double hyphen to
+                    new
                     line</button>
                 <button data-action="copy-with" data-value="RP...##NL" class="btn btn-warning btn-sm">Triple dot to new
                     line</button>
-                <button data-action="copy-with" data-value="RP.##-" class="btn btn-warning btn-sm">Dot to hyphen</button>
+                <button data-action="copy-with" data-value="RP.##-" class="btn btn-warning btn-sm">Dot to
+                    hyphen</button>
             </div>
         </div>
         <ul class="tab-nav" id="myTab" role="tablist">
@@ -419,7 +487,7 @@
                 <div class="row">
                     <div class="col">
                         <label for="inputData">Input Data <a href="#" data-action="copy-whatsapp"
-                            title="Copy">Copy</a></label>
+                                title="Copy">Copy</a></label>
                         <textarea id="inputData" class="input-textarea" rows="25"
                             placeholder="Paste WhatsApp data here..."></textarea>
                     </div>
@@ -433,24 +501,60 @@
                         <input type="password" id="googleVisionApiKey" class="form-control"
                             placeholder="Google Vision API Key for OCR">
                         <label for="outputData">Replace amount - (Example:1DTkt=1dTkt30,1DTkt20=1DTkt30)</label>
-                        <textarea id="amountMapping" class="output-area" rows="5"
+                        <textarea id="amountMapping" class="output-area" rows="3"
                             placeholder="Amount mapping 1DTkt=1dTkt30,1DTkt20=1DTkt30"></textarea>
                         <p id="available-amount-keys" class="available-amount-keys"></p>
-                        <label for="1dRecordLimit" class="form-label">1D record limit:</label>
-                        <input type="text" id="1dRecordLimit" class="form-control"
-                            placeholder="1D record limit (default 100)" value="50">
-                        <label for="2dRecordLimit" class="form-label">2D record limit:</label>
-                        <input type="text" id="2dRecordLimit" class="form-control"
-                            placeholder="2D record limit (default 100)" value="50">
-                        <label for="3dRecordLimit" class="form-label">3D record limit:</label>
-                        <input type="text" id="3dRecordLimit" class="form-control"
-                            placeholder="3D record limit (default 100)" value="100">
-                        <label for="4dRecordLimit" class="form-label">4D record limit:</label>
-                        <input type="text" id="4dRecordLimit" class="form-control"
-                            placeholder="4D record limit (default 100)" value="40">
-                        <label for="5dRecordLimit" class="form-label">5D record limit:</label>
-                        <input type="text" id="5dRecordLimit" class="form-control"
-                            placeholder="5D record limit (default 100)" value="40">
+
+                        <p class="margin-top-small section-title"><b>Record limit for
+                                each dimension (default 100):</b></p>
+                        <label class="normal-label">1D: <input type="text" id="1dRecordLimit"
+                                class="form-control small-input" placeholder="1D record limit (default 50)"
+                                value="50"></label>
+                        <label class="normal-label">2D: <input type="text" id="2dRecordLimit"
+                                class="form-control small-input" placeholder="2D record limit (default 50)"
+                                value="50"></label>
+                        <label class="normal-label">3D: <input type="text" id="3dRecordLimit"
+                                class="form-control small-input" placeholder="3D record limit (default 100)"
+                                value="100"></label>
+                        <label class="normal-label">4D: <input type="text" id="4dRecordLimit"
+                                class="form-control small-input" placeholder="4D record limit (default 40)"
+                                value="40"></label>
+                        <label class="normal-label">5D: <input type="text" id="5dRecordLimit"
+                                class="form-control small-input" placeholder="5D record limit (default 40)"
+                                value="40"></label>
+
+                        <!-- Winnning numbers- Header: Winning Numbers. Fields : 1D-A, 1D-B, 1D-C, 2D-AB. 2D-AC, 2D-BC, 3D, 4D, 5D -->
+                        <p class="margin-top-small section-title"><b>Winning numbers: 1D</b></p>
+                        <label class="normal-label">1D-A: <input type="text" id="1dAWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="1D-A winning numbers (comma separated)"></label>
+                        <label class="normal-label">1D-B: <input type="text" id="1dBWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="1D-B winning numbers (comma separated)"></label>
+                        <label class="normal-label">1D-C: <input type="text" id="1dCWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="1D-C winning numbers (comma separated)"></label>
+                        <p class="margin-top-small section-title"><b>Winning numbers: 2D</b></p>
+                        <label class="normal-label">2D-AB: <input type="text" id="2dABWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="2D-AB winning numbers (comma separated)"></label>
+                        <label class="normal-label">2D-AC: <input type="text" id="2dACWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="2D-AC winning numbers (comma separated)"></label>
+                        <label class="normal-label">2D-BC: <input type="text" id="2dBCWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="2D-BC winning numbers (comma separated)"></label>
+                        <p class="margin-top-small section-title"><b>Winning numbers: 3D/4D/5D</b></p>
+                        <label class="normal-label">3D: <input type="text" id="3dWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="3D winning numbers (comma separated)"></label>
+                        <label class="normal-label">4D: <input type="text" id="4dWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="4D winning numbers (comma separated)"></label>
+                        <label class="normal-label">5D: <input type="text" id="5dWinningNumbers"
+                                class="form-control medium-input"
+                                placeholder="5D winning numbers (comma separated)"></label>
+
                     </div>
                 </div>
             </div>
