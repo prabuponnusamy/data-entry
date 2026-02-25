@@ -224,9 +224,6 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
             sendResponse({ success: false, error: 'No valid data lines found' });
             return;
         }
-
-
-        const addButton = document.querySelector('.add_field_button');
         valuesToInsert = [];
         if (scriptVersion == '2024') {
             // For PDF version, adjust field names if necessary
@@ -254,144 +251,183 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
         } else {
             valuesToInsert = value.split("\n");
         }
-        //alert("No of entries to insert: " + valuesToInsert.length);
-        if (type === "1d_tkt") {
-            let first = true;
-
-            valuesToInsert.forEach(line => {
-                if (first) {
-                    first = false;
-                } else {
-                    addButton.click();
-                }
-                const parts = line.split(",");
-                const num = parts[0];
-                const qty = parts[1];
-                const targets = parts[2].toUpperCase().split("-");
-
-                // find the div class name row which contains aFieldName and find its parent and add a child div with class row as first child
-                insertDataAtSection(aFieldName, line, showData);
-                if (targets.includes("A")) {
-                    setLastValue(aFieldName, num);
-                    setLastValue(aQtyFieldName, qty);
-
-                }
-                if (targets.includes("B")) {
-                    setLastValue(bFieldName, num);
-                    setLastValue(bQtyFieldName, qty);
-
-                }
-                if (targets.includes("C")) {
-                    setLastValue(cFieldName, num);
-                    setLastValue(cQtyFieldName, qty);
-
-                }
-                if (targets.includes("ALL")) {
-                    setLastValue(aFieldName, num);
-                    setLastValue(aQtyFieldName, qty);
-
-                    setLastValue(bFieldName, num);
-                    setLastValue(bQtyFieldName, qty);
-
-                    setLastValue(cFieldName, num);
-                    setLastValue(cQtyFieldName, qty);
-                    return;
-                }
-            });
-
-        } else if (type === "2d_tkt") {
-            let first = true;
-
-            valuesToInsert.forEach(line => {
-                if (first) {
-                    first = false;
-                } else {
-                    addButton.click();
-                }
-
-                const parts = line.split(",");
-                const num = parts[0];
-                const qty = parts[1];
-                const targets = parts[2].toUpperCase().split("-");
-                insertDataAtSection(abFieldName, line, showData);
-
-                if (targets.includes("AB")) {
-                    setLastValue(abFieldName, num);
-                    setLastValue(abQtyFieldName, qty);
-
-                }
-                if (targets.includes("BC")) {
-                    setLastValue(bcFieldName, num);
-                    setLastValue(bcQtyFieldName, qty);
-
-                }
-                if (targets.includes("AC")) {
-                    setLastValue(acFieldName, num);
-                    setLastValue(acQtyFieldName, qty);
-
-                }
-                if (targets.includes("ALL")) {
-                    setLastValue(abFieldName, num);
-                    setLastValue(abQtyFieldName, qty);
-
-                    setLastValue(bcFieldName, num);
-                    setLastValue(bcQtyFieldName, qty);
-
-                    setLastValue(acFieldName, num);
-                    setLastValue(acQtyFieldName, qty);
-                    return;
-                }
-            });
-
-        } else if (
-            type === "3d_box" ||
-            type === "3d_tkt" ||
-            type === "4d_box" ||
-            type === "4d_tkt"
-        ) {
-            let first = true;
-
-            valuesToInsert.forEach(line => {
-                if (first) {
-                    first = false;
-                } else {
-                    addButton.click();
-                }
-
-                const parts = line.split(",");
-                const num = parts[0];
-                const qty = parts[1];
-                insertDataAtSection(abcFieldName, line, showData);
-
-                setLastValue(abcFieldName, num);
-                setLastValue(abcQtyFieldName, qty);
-            });
-
-        } else if (type === "5d_tkt") {
-            let first = true;
-
-            valuesToInsert.forEach((line, index) => {
-                if (first) {
-                    first = false;
-                } else {
-                    addButton.click();
-                }
-
-                const parts = line.split(",");
-                const num = parts[0];
-                const qty = parts[1];
-                insertDataAtSection(abcdeFieldName, line, showData);
-
-                const nums = document.getElementsByName(abcdeFieldName);
-                const qtys = document.getElementsByName(abcdeQtyFieldName);
-
-                if (nums[index]) nums[index].value = num.trim();
-                if (qtys[index]) qtys[index].value = qty;
-            });
-        }
+        insertDataIntoFields(valuesToInsert, type, showData);
     } catch (error) {
         console.error('Error handling insert data:', error);
     }
+}
+
+function insertDataIntoFields(valuesToInsert, type, showData) {
+    //alert("No of entries to insert: " + valuesToInsert.length);
+    const addButton = document.querySelector('.add_field_button');
+    validateDataLength(type, valuesToInsert);
+    if (type === "1d_tkt") {
+        let first = true;
+
+        valuesToInsert.forEach(line => {
+            if (first) {
+                first = false;
+            } else {
+                addButton.click();
+            }
+            const parts = line.split(",");
+            const num = parts[0];
+            const qty = parts[1];
+            const targets = parts[2].toUpperCase().split("-");
+
+            // find the div class name row which contains aFieldName and find its parent and add a child div with class row as first child
+            insertDataAtSection(aFieldName, line, showData);
+            if (targets.includes("A")) {
+                setLastValue(aFieldName, num);
+                setLastValue(aQtyFieldName, qty);
+
+            }
+            if (targets.includes("B")) {
+                setLastValue(bFieldName, num);
+                setLastValue(bQtyFieldName, qty);
+
+            }
+            if (targets.includes("C")) {
+                setLastValue(cFieldName, num);
+                setLastValue(cQtyFieldName, qty);
+
+            }
+            if (targets.includes("ALL")) {
+                setLastValue(aFieldName, num);
+                setLastValue(aQtyFieldName, qty);
+
+                setLastValue(bFieldName, num);
+                setLastValue(bQtyFieldName, qty);
+
+                setLastValue(cFieldName, num);
+                setLastValue(cQtyFieldName, qty);
+                return;
+            }
+        });
+
+    } else if (type === "2d_tkt") {
+        let first = true;
+
+        valuesToInsert.forEach(line => {
+            if (first) {
+                first = false;
+            } else {
+                addButton.click();
+            }
+
+            const parts = line.split(",");
+            const num = parts[0];
+            const qty = parts[1];
+            const targets = parts[2].toUpperCase().split("-");
+            insertDataAtSection(abFieldName, line, showData);
+
+            if (targets.includes("AB")) {
+                setLastValue(abFieldName, num);
+                setLastValue(abQtyFieldName, qty);
+
+            }
+            if (targets.includes("BC")) {
+                setLastValue(bcFieldName, num);
+                setLastValue(bcQtyFieldName, qty);
+
+            }
+            if (targets.includes("AC")) {
+                setLastValue(acFieldName, num);
+                setLastValue(acQtyFieldName, qty);
+
+            }
+            if (targets.includes("ALL")) {
+                setLastValue(abFieldName, num);
+                setLastValue(abQtyFieldName, qty);
+
+                setLastValue(bcFieldName, num);
+                setLastValue(bcQtyFieldName, qty);
+
+                setLastValue(acFieldName, num);
+                setLastValue(acQtyFieldName, qty);
+                return;
+            }
+        });
+
+    } else if (
+        type === "3d_box" ||
+        type === "3d_tkt" ||
+        type === "4d_box" ||
+        type === "4d_tkt"
+    ) {
+        let first = true;
+
+        valuesToInsert.forEach(line => {
+            if (first) {
+                first = false;
+            } else {
+                addButton.click();
+            }
+
+            const parts = line.split(",");
+            const num = parts[0];
+            const qty = parts[1];
+            insertDataAtSection(abcFieldName, line, showData);
+
+            setLastValue(abcFieldName, num);
+            setLastValue(abcQtyFieldName, qty);
+        });
+
+    } else if (type === "5d_tkt") {
+        let first = true;
+
+        valuesToInsert.forEach((line, index) => {
+            if (first) {
+                first = false;
+            } else {
+                addButton.click();
+            }
+
+            const parts = line.split(",");
+            const num = parts[0];
+            const qty = parts[1];
+            insertDataAtSection(abcdeFieldName, line, showData);
+            setLastValue(abcdeFieldName, num);
+            setLastValue(abcdeQtyFieldName, qty);
+        });
+    }
+
+}
+
+/**
+ * Check the data length is matching the expected length for the ticket type.
+ */
+function validateDataLength(type, values) {
+    const expectedLength = {
+        "1d_tkt": 1,
+        "2d_tkt": 2,
+        "3d_tkt": 3,
+        "3d_box": 3,
+        "4d_tkt": 4,
+        "4d_box": 4,
+        "5d_tkt": 5
+    }[type];
+
+    values.filter(v => v.trim() !== "").forEach(line => {
+        const numPart = line.split(",")[0].trim();
+        if (numPart.length !== expectedLength) {
+            alert(`Invalid data length for ${type}: ${numPart} (expected ${expectedLength} digits)`);
+            throw new Error(`Invalid data length for ${type}: ${numPart} (expected ${expectedLength} digits)`);
+        }
+        const qtyPart = line.split(",")[1] ? line.split(",")[1].trim() : null;
+        if (!qtyPart || isNaN(qtyPart) || parseInt(qtyPart) <= 0) {
+            alert(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
+            throw new Error(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
+        }
+        if (type === "1d_tkt"  || type === "2d_tkt") {
+            const targetPart = line.split(",")[2] ? line.split(",")[2].trim().toUpperCase() : null;
+            const validTargets = ["A", "B", "C", "AB", "BC", "AC", "ALL"];
+            if (!targetPart || !validTargets.includes(targetPart)) {
+                alert(`Invalid target for ${type}: ${targetPart} (must be one of ${validTargets.join(", ")})`);
+                throw new Error(`Invalid target for ${type}: ${targetPart} (must be one of ${validTargets.join(", ")})`);
+            }
+        }
+    });
 }
 
 /**
