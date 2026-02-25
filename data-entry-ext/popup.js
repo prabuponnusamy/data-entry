@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusEl = document.getElementById('status');
     const statusMessage = document.getElementById('statusMessage');
     const parseBtn = document.getElementById('parseBtn');
+    const parseBtnV1 = document.getElementById('parseBtnV1');
 
     const allowedDomains = [
         'orangepblw.com',
@@ -23,6 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
         parseBtn.addEventListener('click', () => {
             const parseDataUrl = chrome.runtime.getURL('parse-data.html');
             chrome.tabs.create({ url: parseDataUrl });
+        });
+    }
+
+    if (parseBtnV1) {
+        parseBtnV1.addEventListener('click', () => {
+            const parseDataV1Url = chrome.runtime.getURL('parse-data-v1.html');
+            chrome.tabs.create({ url: parseDataV1Url });
         });
     }
 

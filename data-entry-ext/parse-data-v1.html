@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parse Data - Data Entry Extension</title> <!-- Bootstrap CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+            font-size: medium;
+        }
+
+        .container {
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px 10px 0 10px;
+        }
+
+        .content-section {
+            padding-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #222;
+            font-weight: 600;
+        }
+
+        span.winning-number {
+            font-size: 18px;
+            font-weight: bold;
+            opacity: 1;
+            transform: scale(1);
+            transition: all 0.6s ease;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .io-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .io-column {
+            flex: 1;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #222;
+            font-weight: 600;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        label.normal-label {
+            display: inline-block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            margin-right: 16px;
+            margin-left: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-size: medium;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #eef3ff;
+            padding: 8px;
+            text-align: center;
+            font-size: medium;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button,
+        input[type="file"] {
+            padding: 10px 24px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: medium;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type="text"] {
+            border: 1px solid #ddd;
+            font-size: medium;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            padding: 10px;
+        }
+
+        input[type="text"].small-input {
+            width: 60px;
+        }
+
+        input[type="text"].medium-input {
+            width: 120px;
+        }
+
+        input[type="text"].large-input {
+            width: 180px;
+        }
+
+        input[type="password"] {
+            border: 1px solid #ddd;
+            font-size: medium;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            padding: 10px;
+        }
+
+        button:hover {
+            background: #15c040;
+        }
+
+        button:active {
+            background: #e00d70;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #efefef;
+        }
+
+        .btn-error {
+            background: #f5f5f5;
+            color: #f60202;
+            border: 1px solid #f20404;
+        }
+
+        .btn-error:hover {
+            background: #ffdddd;
+        }
+
+        .output {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: medium;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+        }
+
+        .output.visible {
+            display: block;
+        }
+
+        .status-message {
+            padding: 10px 24px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            margin-top: 16px;
+            font-size: medium;
+            border: #1976d2 1px solid;
+            background: #e3f2fd;
+            color: #e3f2fd;
+        }
+
+        .status-message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #90caf9;
+        }
+
+        .status-message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #81c784;
+        }
+
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        textarea.error-output {
+            border: 2px solid #c62828 !important;
+            background-color: #fbd8d8 !important;
+        }
+
+        .info-text {
+            font-size: medium;
+            color: #999;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        .divider {
+            height: 1px;
+            background: #080808;
+            margin: 16px 0;
+        }
+
+        .section-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        /* Sticky header bar for controls */
+        .header-section {
+            padding-top: 10px;
+        }
+
+        .float-section {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .float-section-tab {
+            position: sticky;
+            top: 100px;
+            z-index: 1020;
+        }
+
+        .padding-top-10 {
+            padding-top: 10px;
+        }
+
+        .padding-left-30 {
+            padding-left: 30px;
+        }
+
+        .header-section .form-check-input {
+            margin-left: 12px;
+        }
+
+        .margin-top-small {
+            margin-top: 8px;
+        }
+
+        .margin-bottom-small {
+            margin-bottom: 8px;
+        }
+
+        .available-amount-keys {
+            border: 2px dashed #1976d2;
+            padding: 10px;
+            border-radius: 4px;
+            background: #e3f2fd;
+            font-size: medium;
+        }
+
+        /* Tab Styling */
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            gap: 0;
+            background: white;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            font-size: medium;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        textarea {
+            line-height: 2;
+        }
+
+        .tab-button.active {
+            color: #1976d2;
+            border-bottom-color: #1976d2;
+            background: white;
+        }
+
+        textarea.copied-now {
+            border: 2px solid #28a745 !important;
+            background-color: #81c784 !important;
+        }
+
+        textarea.copied {
+            border: 2px solid #2a04e4 !important;
+            background-color: #e8e4e4 !important;
+        }
+
+        .tab-pane {
+            display: none;
+            padding-top: 16px;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .hide_ele {
+            display: none;
+        }
+
+        .lottery-winning-number {
+            display: inline-block;
+            margin-left: 20px;
+            font-weight: 700;
+            font-size: 28px;
+            color: #d97706;
+            /* rich amber */
+            animation: popGlow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes popGlow {
+            0% {
+                transform: scale(1);
+                text-shadow: 0 0 4px rgba(217, 119, 6, 0.3);
+            }
+
+            100% {
+                transform: scale(1.25);
+                text-shadow: 0 0 8px rgba(217, 119, 6, 0.6), 0 0 18px rgba(255, 200, 0, 0.4);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container header-section float-section"> <!-- Add borders-->
+        <div id="buttonGroupSection" class="button-group"> <input type="file" id="zipInput" accept=".zip"> <button
+                id="processZipBtn" class="btn btn-primary btn-sm">Process Zip</button> <button id="parseInputBtn"
+                class="btn btn-primary btn-sm hide_ele">Parse Data</button> <button id="processBtn"
+                class="btn btn-primary btn-sm hide_ele">Process Data</button> <button id="generateFinalOutputBtn"
+                class="btn btn-primary btn-sm">Gen Output</button> <button id="saveInputDataBtn"
+                class="btn btn-secondary btn-sm">Save Input</button> <a href="#status-message"
+                class="btn btn-primary btn-sm" title="Go to Top">Top</a>
+                <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee" style="width: 320px;">
+                <select id="targetTime" style="width: 150px;">
+                    <option value="na">NA</option>
+                    <option value="one">1 PM</option>
+                    <option value="two">6 PM</option>
+                    <option value="three">8 PM</option>
+                </select>
+        </div>
+        <ul class="tab-nav" id="myTab" role="tablist"> <button class="tab-button active" id="input-tab"
+                data-tab="input-tab-pane" type="button" role="tab">Input data</button> <button class="tab-button"
+                id="validate-tab" data-tab="validate-tab-pane" type="button" role="tab">Validate data</button> <button
+                class="tab-button" id="finaloutput-tab" data-tab="finaloutput-tab-pane" type="button" role="tab">Final
+                content</button> </ul>
+    </div>
+    <div class="container content-section">
+        <div class="status-message" id="status-message">Welcome</div>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane active" id="input-tab-pane" role="tabpanel">
+                <div class="row">
+                    <div class="col"> <label for="inputData">Input Data <a href="#" class="copy-whatsapp" data-action="copy-whatsapp"
+                                title="Copy">Copy</a></label> <textarea id="inputData" class="input-textarea" rows="25"
+                            placeholder="Paste WhatsApp data here..."></textarea> </div>
+                    <div class="col"> <label for="outputData">Output Data</label> <textarea id="outputData"
+                            class="output-area" rows="25" placeholder="Paste copilot generated data here..."></textarea>
+                    </div>
+                    <div class="col"> <label for="googleVisionApiKey">Google Vision API Key</label> <input
+                            type="password" id="googleVisionApiKey" class="form-control"
+                            placeholder="Google Vision API Key for OCR"> <label for="outputData">Replace amount -
+                            (Example:1DTkt=1dTkt30,1DTkt20=1DTkt30)</label> <textarea id="amountMapping"
+                            class="output-area" rows="3"
+                            placeholder="Amount mapping 1DTkt=1dTkt30,1DTkt20=1DTkt30"></textarea>
+                        <p id="available-amount-keys" class="available-amount-keys"></p>
+                        <p class="margin-top-small section-title"><b>Record limit for each dimension (default 100):</b>
+                        </p> <label class="normal-label">1D: <input type="text" id="1dRecordLimit" name="recordLimit"
+                                class="small-input" placeholder="1D record limit (default 50)" value="50"></label>
+                        <label class="normal-label">2D: <input type="text" id="2dRecordLimit" name="recordLimit"
+                                class="small-input" placeholder="2D record limit (default 50)" value="50"></label>
+                        <label class="normal-label">3D: <input type="text" id="3dRecordLimit" name="recordLimit"
+                                class="small-input" placeholder="3D record limit (default 100)" value="100"></label>
+                        <label class="normal-label">4D: <input type="text" id="4dRecordLimit" name="recordLimit"
+                                class="small-input" placeholder="4D record limit (default 40)" value="40"></label>
+                        <label class="normal-label">5D: <input type="text" id="5dRecordLimit" name="recordLimit"
+                                class="small-input" placeholder="5D record limit (default 40)" value="40"></label>
+                        <!-- Winnning numbers- Header: Winning Numbers. Fields : 1D-A, 1D-B, 1D-C, 2D-AB. 2D-AC, 2D-BC, 3D, 4D, 5D -->
+                        <p class="margin-top-small section-title"><b>Winning numbers: 1D</b></p> <label
+                            class="normal-label">1D-A: <input type="text" id="1dAWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="1D-A winning numbers (comma separated)"></label>
+                        <label class="normal-label">1D-B: <input type="text" id="1dBWinningNumbers"
+                                name="winningNumbers" class="medium-input"
+                                placeholder="1D-B winning numbers (comma separated)"></label> <label
+                            class="normal-label">1D-C: <input type="text" id="1dCWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="1D-C winning numbers (comma separated)"></label>
+                        <p class="margin-top-small section-title"><b>Winning numbers: 2D</b></p> <label
+                            class="normal-label">2D-AB: <input type="text" id="2dABWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="2D-AB winning numbers (comma separated)"></label>
+                        <label class="normal-label">2D-AC: <input type="text" id="2dACWinningNumbers"
+                                name="winningNumbers" class="medium-input"
+                                placeholder="2D-AC winning numbers (comma separated)"></label> <label
+                            class="normal-label">2D-BC: <input type="text" id="2dBCWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="2D-BC winning numbers (comma separated)"></label>
+                        <p class="margin-top-small section-title"><b>Winning numbers: 3D/4D/5D</b></p> <label
+                            class="normal-label">3D: <input type="text" id="3dWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="3D winning numbers (comma separated)"></label> <label
+                            class="normal-label">4D: <input type="text" id="4dWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="4D winning numbers (comma separated)"></label> <label
+                            class="normal-label">5D: <input type="text" id="5dWinningNumbers" name="winningNumbers"
+                                class="medium-input" placeholder="5D winning numbers (comma separated)"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="validate-tab-pane" role="tabpanel">
+                <div class="info-text">Data generated for the validation.</div>
+                <div id="tableContainer"></div>
+            </div>
+            <div class="tab-pane" id="finaloutput-tab-pane" role="tabpanel">
+                <div class="info-text">Data generated for data entry.</div>
+                <div id="finalOutputContent"></div>
+            </div>
+        </div>
+    </div> <!-- Bootstrap JS Bundle -->
+    <script src="js/jszip.min.js"></script>
+    <script src="js/normalizetext.js"></script>
+    <script src="js/spellchecker.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/english_word_list.js"></script>
+    <script src="js/eventlistener.js"></script>
+    <script src="js/imageparser.js"></script>
+    <script src="js/processzipfile.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/parseinput.js"></script>
+    <script src="js/validatesection.js"></script>
+    <script src="js/generateoutput.js"></script>
+</body>
+
+</html>
