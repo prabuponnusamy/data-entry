@@ -9,7 +9,10 @@ var headerLineMatchRegex = /^(\[\s*)?\d{2}\/\d{2}\/\d{2,4},\s*\d{1,2}:\d{2}(:\d{
  * Groups are separated by timestamp lines containing ":"
  */
 function getMessageGroups() {
-    const inputData = document.getElementById(INPUT_FIELD_ID).value;
+    const inputData = document.getElementById(INPUT_FIELD_ID).value.replace(
+        /(\d+)\s*\r?\n\s*To\s*\r?\n\s*(\d+)/g,
+        "$1 To $2"
+    );
     const lines = inputData.split('\n').filter(line => line.trim() !== '');
     let messageGroup = [];
     let message = [];
@@ -238,39 +241,39 @@ function parseMessages() {
                 if (to - from < 10) {
                     // Increment 1 by 1 inclusive
                     for (let i = from; i <= to; i++) {
-                        cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                        cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                     }
                 } else if (to - from < 100) {
                     // Increment 5 by 5 inclusive
                     if ((to - from) % 10 === 0) {
                         for (let i = from; i <= to; i += 10) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                         }
                     } else {
                         for (let i = from; i <= to; i += 11) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                         }
                     }
                 } else if (to - from < 1000) {
                     // Increment 100 by 100 inclusive
                     if ((to - from) % 100 === 0) {
                         for (let i = from; i <= to; i += 100) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                         }
                     } else {
                         for (let i = from; i <= to; i += 111) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                         }
                     }
                 } else if (to - from < 10000) {
                     // Increment 100 by 100 inclusive
                     if ((to - from) % 1000 === 0) {
                         for (let i = from; i <= to; i += 1000) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                         }
                     } else {
                         for (let i = from; i <= to; i += 1111) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen)});
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
                         }
                     }
                 }
@@ -469,7 +472,7 @@ function parseMessages() {
                     });
                 }
             });
-            
+
         });
         groupedOutLines.push(outLines.length > 0 ? outLines.join('\n') : '\n' + FAILED_TO_PARSE + '\n');
     });
@@ -504,21 +507,18 @@ function groupCleanedUpDataFirstLevel(lines) {
 }
 
 function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
-
-    if (cleanedUpGroupedLinesFirstLevel.length <= 1) {
-        return cleanedUpGroupedLinesFirstLevel;
-    }
     var prevGroup;
     var cleanedUpGroupedLines = [];
     cleanedUpGroupedLinesFirstLevel.forEach(group => {
         if (prevGroup) {
+            const isPrevGroupHasQty = prevGroup['beforeData'].some(line => line['qty'] && line['qty'] != '') || prevGroup['afterData'].some(line => line['qty'] && line['qty'] != '');
             if (group['data'].length == 0) {
                 prevGroup['afterData'] = prevGroup['beforeData'].concat(group['beforeData']);
             } else {
                 if (group['beforeData'].length > 0) {
                     var beforeData = [];
                     group['beforeData'].forEach(groupEntry => {
-                        if ((groupEntry['qty'] && groupEntry['qty'] != '')) {
+                        if ((groupEntry['qty'] && groupEntry['qty'] != '' && !isPrevGroupHasQty) || (groupEntry['isBox'] && group['dataLen'] && group['dataLen'] < 3)) {
                             prevGroup['afterData'].push(groupEntry);
                         } else if (groupEntry['isBox'] && group['dataLen'] && group['dataLen'] < 3) {
                             prevGroup['afterData'].push(groupEntry);
