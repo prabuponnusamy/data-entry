@@ -420,9 +420,9 @@ function validateDataLength(type, values) {
             throw new Error(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
         }
         if (type === "1d_tkt"  || type === "2d_tkt") {
-            const targetPart = line.split(",")[2] ? line.split(",")[2].trim().toUpperCase() : null;
+            const targetPart = (line.split(",")[2] ? line.split(",")[2].trim().toUpperCase() : null)?.split("-").map(t => t.trim());
             const validTargets = ["A", "B", "C", "AB", "BC", "AC", "ALL"];
-            if (!targetPart || !validTargets.includes(targetPart)) {
+            if (!targetPart || !targetPart.every(t => validTargets.includes(t))) {
                 alert(`Invalid target for ${type}: ${targetPart} (must be one of ${validTargets.join(", ")})`);
                 throw new Error(`Invalid target for ${type}: ${targetPart} (must be one of ${validTargets.join(", ")})`);
             }
