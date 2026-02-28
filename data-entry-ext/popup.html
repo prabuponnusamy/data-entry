@@ -212,13 +212,13 @@
                         <select id="tkt_option"
                             style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                             <option value="select">Select</option>
-                            <option value="1d_tkt">1D Ticket</option>
-                            <option value="2d_tkt">2D Ticket</option>
-                            <option value="3d_tkt">3D Ticket</option>
-                            <option value="3d_box">3D Box</option>
-                            <option value="4d_tkt">4D Ticket</option>
-                            <option value="4d_box">4D Box</option>
-                            <option value="5d_tkt">5D Ticket</option>
+                            <option value="1DTkt">1D Ticket</option>
+                            <option value="2DTkt">2D Ticket</option>
+                            <option value="3DTkt">3D Ticket</option>
+                            <option value="3DBox">3D Box</option>
+                            <option value="4DTkt">4D Ticket</option>
+                            <option value="4DBox">4D Box</option>
+                            <option value="5DTkt">5D Ticket</option>
                         </select>
                         <!-- Radio button Entry with 2024, PDF, 2026-->
                         <label for="script_version"
@@ -232,8 +232,7 @@
                         </select>
                     </div>
                     <div class="content-side">
-                        <label for="qty_option"
-                            style="display: block; margin-bottom: 8px; ">Quantity (2024
+                        <label for="qty_option" style="display: block; margin-bottom: 8px; ">Quantity (2024
                             Only):</label>
                         <input type="number" id="qty_option" min="1" value="1"
                             style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
@@ -262,7 +261,6 @@
             <div class="content">
                 <p>Click the button below to open the data parsing interface in a new window.</p>
                 <button id="parseBtn">Open Parse Data</button>
-                <button id="parseBtnV1">Open Parse Data V1</button>
             </div>
         </div>
 
@@ -286,9 +284,8 @@
         </div>
     </div>
 
-
-    <script src="popup.js"></script>
-    <script src="content-script.js"></script>
+    <script src="js/ext/popup.js"></script>
+    <script src="js/ext/content-script.js"></script>
 </body>
 
 </html>

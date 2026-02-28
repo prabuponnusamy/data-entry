@@ -6,8 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusEl = document.getElementById('status');
     const statusMessage = document.getElementById('statusMessage');
     const parseBtn = document.getElementById('parseBtn');
-    const parseBtnV1 = document.getElementById('parseBtnV1');
-
     const allowedDomains = [
         'orangepblw.com',
         'rajasree.org',
@@ -27,12 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (parseBtnV1) {
-        parseBtnV1.addEventListener('click', () => {
-            const parseDataV1Url = chrome.runtime.getURL('parse-data-v1.html');
-            chrome.tabs.create({ url: parseDataV1Url });
-        });
-    }
 
     // Handle Insert Data button
     const insertBtn = document.getElementById('insertBtn');
@@ -129,19 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // set default ticket type based on last part of url
         
-        tktOptionDefault = '1d_tkt';
+        tktOptionDefault = TARGET_1D_TKT;
         if (currentUrl.includes('/2dticket')) {
-            tktOptionDefault = '2d_tkt';
+            tktOptionDefault = TARGET_2D_TKT;
         } else if (currentUrl.endsWith('/3dticket')) {
-            tktOptionDefault = '3d_tkt';
+            tktOptionDefault = TARGET_3D_TKT;
         } else if (currentUrl.endsWith('/3dbox')) {
-            tktOptionDefault = '3d_box';
+            tktOptionDefault = TARGET_3D_BOX;
         } else if (currentUrl.endsWith('/4dticket')) {
-            tktOptionDefault = '4d_tkt';
+            tktOptionDefault = TARGET_4D_TKT;
         } else if (currentUrl.endsWith('/4dbox')) {
-            tktOptionDefault = '4d_box';
+            tktOptionDefault = TARGET_4D_BOX;
         } else if (currentUrl.endsWith('/5dticket')) {
-            tktOptionDefault = '5d_tkt';
+            tktOptionDefault = TARGET_5D_TKT;
         }
         const ticketTypeSelect = document.getElementById('tkt_option');
         if (ticketTypeSelect) {

@@ -10,7 +10,6 @@ function copyTextWithNewLine(txt) {
     navigator.clipboard.writeText('\n' + txt.trim() + '\n');
 }
 
-
 function openNewTabWithData(actionEl) {
     //alert("Opening new tab with target: " + target + " and data:\n" + data);
     websiteBaseUrl = document.getElementById('websiteBaseUrlInput').value;
@@ -20,41 +19,41 @@ function openNewTabWithData(actionEl) {
         alert('Please enter the website base URL. Eg https://abidear.com/employee');
         return
     }
-    var tktMap = {
-        "1DTkt": "1d_tkt", "1DCut": "1d_tkt",
-        "2DTkt": "2d_tkt", "2DCut": "2d_tkt",
-        "3DBox": "3d_box", "3DCut": "3d_tkt", "3DTkt": "3d_tkt",
-        "4DTkt": "4d_tkt", "4DBox": "4d_box", "4DCut": "4d_tkt",
-        "5DTkt": "5d_tkt", "5DCut": "5d_tkt", "5DBox": "5d_box"
-    };
-    urlMap = {
-        'na': {"1d_tkt": '/order/1dticket', "2d_tkt": '/order/2dticket', "3d_tkt": '/order/3dticket', "4d_tkt": '/order/4dticket', "5d_tkt": '/order/5dticket',
-               "3d_box": '/order/3dbox', "4d_box": '/order/4dbox'},
-        'one': {
-            "1d_tkt": '/drawOne/1dticket', "2d_tkt": '/drawOne/2dticket', "3d_tkt": '/drawOne/3dticket', "4d_tkt": '/drawOne/4dticket',
-            "3d_box": '/drawOne/3dbox', "4d_box": '/drawOne/4dbox'
-        },
-        'two': {
-            "1d_tkt": '/drawTwo/1dticket', "2d_tkt": '/drawTwo/2dticket', "3d_tkt": '/drawTwo/3dticket', "4d_tkt": '/drawTwo/4dticket',
-            "3d_box": '/drawTwo/3dbox', "4d_box": '/drawTwo/4dbox'
-        },
-        'three': {
-            "1d_tkt": '/drawThree/1dticket', "2d_tkt": '/drawThree/2dticket', "3d_tkt": '/drawThree/3dticket', "4d_tkt": '/drawThree/4dticket',
-            "3d_box": '/drawThree/3dbox', "4d_box": '/drawThree/4dbox'
-        }
-    }
-    if (!tktMap[target]) {
+    var allowedTktTargets = [TARGET_1D_TKT, TARGET_2D_TKT, TARGET_3D_TKT, TARGET_3D_BOX, TARGET_4D_TKT, TARGET_4D_BOX, TARGET_5D_TKT];
+    if (!allowedTktTargets.includes(target)) {
         alert('Unknown target: ' + target);
         return;
     }
-    const url = websiteBaseUrl + (urlMap[targetTime][tktMap[target]] || '');
+    urlSuffix = {
+        [TARGET_1D_TKT]: '1dticket', [TARGET_2D_TKT]: '2dticket', [TARGET_3D_TKT]: '3dticket', [TARGET_4D_TKT]: '4dticket', [TARGET_5D_TKT]: '5dticket',
+            [TARGET_3D_BOX]: '3dbox', [TARGET_4D_BOX]: '4dbox'
+    };
+    urlMap = {
+        'na': {
+            [TARGET_1D_TKT]: '/order/1dticket', [TARGET_2D_TKT]: '/order/2dticket', [TARGET_3D_TKT]: '/order/3dticket', [TARGET_4D_TKT]: '/order/4dticket', [TARGET_5D_TKT]: '/order/5dticket',
+            [TARGET_3D_BOX]: '/order/3dbox', [TARGET_4D_BOX]: '/order/4dbox'
+        },
+        'one': {
+            [TARGET_1D_TKT]: '/drawOne/1dticket', [TARGET_2D_TKT]: '/drawOne/2dticket', [TARGET_3D_TKT]: '/drawOne/3dticket', [TARGET_4D_TKT]: '/drawOne/4dticket',
+            [TARGET_3D_BOX]: '/drawOne/3dbox', [TARGET_4D_BOX]: '/drawOne/4dbox'
+        },
+        'two': {
+            [TARGET_1D_TKT]: '/drawTwo/1dticket', [TARGET_2D_TKT]: '/drawTwo/2dticket', [TARGET_3D_TKT]: '/drawTwo/3dticket', [TARGET_4D_TKT]: '/drawTwo/4dticket',
+            [TARGET_3D_BOX]: '/drawTwo/3dbox', [TARGET_4D_BOX]: '/drawTwo/4dbox'
+        },
+        'three': {
+            [TARGET_1D_TKT]: '/drawThree/1dticket', [TARGET_2D_TKT]: '/drawThree/2dticket', [TARGET_3D_TKT]: '/drawThree/3dticket', [TARGET_4D_TKT]: '/drawThree/4dticket',
+            [TARGET_3D_BOX]: '/drawThree/3dbox', [TARGET_4D_BOX]: '/drawThree/4dbox'
+        }
+    }
+    const url = websiteBaseUrl+ (websiteBaseUrl.substring(websiteBaseUrl.length - 1) === '/' || urlSuffix[target].startsWith('/') ? '' : '/') + (urlSuffix[target] || '');
 
     var data = copyTextarea(actionEl);
     chrome.runtime.sendMessage({
         action: "openAndFill",
         payload: data,
         url: url,
-        target: tktMap[target]
+        target: target
     });
 }
 
@@ -62,6 +61,7 @@ function openNewTabWithData(actionEl) {
 
 // Parse Data functionality
 document.addEventListener('DOMContentLoaded', () => {
+    winningNumbers = new WinningNumbers({});
 
     // ============================================================================
     // SECTION 5: EVENT LISTENERS
@@ -72,9 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // CSP-safe delegated click handlers (replaces inline `onclick` usage)
 
     document.getElementById('parseInputBtn')?.addEventListener('click', () => {
-        parseMessages();
-        generateTable();
-        generateFinalOutput();
+        processInput();
     });
 
     document.getElementById('processBtn')?.addEventListener('click', generateTable);
@@ -130,9 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inputData')?.addEventListener('blur', () => {
         // Save the input in the local storage
         localStorage.setItem('inputData', document.getElementById('inputData').value);
-        parseMessages();
-        generateTable();
-        generateFinalOutput();
+        processInput();
     });
 
     // set default value of inputData textarea from local storage if available
@@ -147,9 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedVisionRequests) {
             visionRequests = new Map(JSON.parse(savedVisionRequests));
         }
-        parseMessages();
-        generateTable();
-        generateFinalOutput();
+        // set winning number input value from local storage
+        document.getElementById('lotteryWinningNumber').value = localStorage.getItem('winningNumberValue') || '';
+        winningNumberChangeListener();
+        processInput();
     }
 
     // Save button saveInputDataBtn
@@ -209,9 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (row) {
                 row.remove();
                 copyInputEditedData();
-                parseMessages();
-                generateTable();
-                generateFinalOutput();
+                processInput();
             }
             return;
         }
@@ -234,6 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeunload', function (event) {
         event.preventDefault(); // Prevent the default action
         event.returnValue = ''; // Display a confirmation dialog
+    });
+
+    document.getElementById('lotteryWinningNumber').addEventListener('change', (event) => {
+        const winningNumberValue = event.target.value;
+        localStorage.setItem('winningNumberValue', winningNumberValue);
+        winningNumbers.setNumberMap({});
+        winningNumberChangeListener();
+    });
+
+    // Select websiteBaseUrlSelect value to websiteBaseUrlInput
+    document.getElementById('websiteBaseUrlSelect').addEventListener('change', (event) => {
+        const selectedValue = event.target.value;
+        document.getElementById('websiteBaseUrlInput').value = selectedValue;
     });
 });
 

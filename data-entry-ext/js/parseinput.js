@@ -49,6 +49,7 @@ function parseMessages() {
     // clear map before parsing
     var groups = getMessageGroups();
     //showFailedParsing = document.getElementById('showFailedParsing').checked;
+    var english_words = ["TICKET", "BOARD", "EACH", "DEAR", "SET", "BOX", "ALL", "CH"].sort((a, b) => b.length - a.length);
 
     var parsedData = [];
     var groupedOutLines = [];
@@ -109,7 +110,66 @@ function parseMessages() {
             line = replaceUnwantedChars(line);
             line = splitTextAndNumbers(line);
             line = line.replace(/\bX\b/, '-');
+            // Fix spell mistakes in line
+            var foundMatch = false;
+            line.split(' ').forEach(word => {
+                foundMatch = false;
+                english_words.forEach(engWord => {
+                    if (foundMatch) return;
+                    if (engWord == word) {
+                        foundMatch = true;
+                        return;
+                    }
+                    if (engWord.length == word.length) {
+                        var engWordChars = engWord.split('');
+                        var wordChars = word.split('');
+                        // Check the number of matching characters in any order
+                        var matchCount = 0;
+                        engWordChars.forEach(char => {
+                            if (wordChars.includes(char)) {
+                                matchCount++;
+                            }
+                        });
+                    }
+                    var matchScore = matchCount / engWord.length;
+                    if (matchScore > 0.5) {
+                        line = line.replace(word, engWord.toUpperCase());
+                        foundMatch = true;
+                        // break the loop if match found
+                        return;
+                    }
+                });
+            });
+            // Fix spell mistakes in line
+            line.split(' ').forEach(word => {
+                foundMatch = false;
+                english_words.forEach(engWord => {
+                    if (foundMatch) return;
+                    if (engWord == word) {
+                        foundMatch = true;
+                        return;
+                    }
+                    var engWordChars = engWord.split('');
+                    var wordChars = word.split('');
+                    // Check the number of matching characters in any order
+                    var matchCount = 0;
+                    engWordChars.forEach(char => {
+                        if (wordChars.includes(char)) {
+                            matchCount++;
+                        }
+                    });
+
+                    var matchScore = matchCount / engWord.length;
+                    if (matchScore > 0.5) {
+                        line = line.replace(word, engWord.toUpperCase());
+                        foundMatch = true;
+                        // break the loop if match found
+                        return;
+                    }
+                });
+            });
             cleanedMsg['cleanedLine'] = line;
+            line = line.replace("ABACBC", 'ALL').trim();
             const tokens = line.toUpperCase().match(/\b(?:ABAC|ABBC|ACBC|ABC|ALL|AB|AC|BC|A|B|C)\b/g);
             if (tokens) {
                 const uniqueTokens = [...new Set(tokens)];
@@ -234,6 +294,7 @@ function parseMessages() {
                 vlen = toMatch[1].length;
                 from = parseInt(toMatch[1]);
                 to = parseInt(toMatch[2]);
+                qty = cleanedMsg['qty'] ? cleanedMsg['qty'] : null;
                 // format as vlen digit number with leading zeros
                 const formatNumber = (num, length) => {
                     return num.toString().padStart(length, '0');
@@ -241,44 +302,51 @@ function parseMessages() {
                 if (to - from < 10) {
                     // Increment 1 by 1 inclusive
                     for (let i = from; i <= to; i++) {
-                        cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                        cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                     }
                 } else if (to - from < 100) {
                     // Increment 5 by 5 inclusive
                     if ((to - from) % 10 === 0) {
                         for (let i = from; i <= to; i += 10) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                         }
                     } else {
                         for (let i = from; i <= to; i += 11) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                         }
                     }
                 } else if (to - from < 1000) {
                     // Increment 100 by 100 inclusive
                     if ((to - from) % 100 === 0) {
                         for (let i = from; i <= to; i += 100) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                         }
                     } else {
                         for (let i = from; i <= to; i += 111) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                         }
                     }
                 } else if (to - from < 10000) {
                     // Increment 100 by 100 inclusive
                     if ((to - from) % 1000 === 0) {
                         for (let i = from; i <= to; i += 1000) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                         }
                     } else {
                         for (let i = from; i <= to; i += 1111) {
-                            cleanedMsg['data'].push({ number: formatNumber(i, vlen) });
+                            cleanedMsg['data'].push({ number: formatNumber(i, vlen), qty: qty, target: cleanedMsg['target'] ? cleanedMsg['target'] : null, amount: cleanedMsg['amount'] ? cleanedMsg['amount'] : null });
                         }
                     }
                 }
                 return;
             }
+            // replace complete line if matching below words
+            const wordsToReplace = ['TICKETS', "TICKET", "BOARD", "EACH", "DEAR", "SET", "BOX", "ALL", "CH"];
+            if (wordsToReplace.some(word => line == word)) {
+                line = '';
+                return;
+            }
+
             // Check line matches AC-80-10
             var values = line.split('~');
             // check and values are numbers
@@ -428,9 +496,9 @@ function parseMessages() {
                                 outLines.push(`1DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                             } else */
                             if (finalCutStatus) {
-                                outLines.push(`1DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
+                                outLines.push(`${TARGET_1D_CUT},${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                             } else {
-                                outLines.push(`1DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
+                                outLines.push(`${TARGET_1D_TKT},${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                             }
                         } else if (dataLen == 2) {
                             if (targetValueLocal == 'ABC') {
@@ -440,33 +508,33 @@ function parseMessages() {
                                 outLines.push(`2DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                             } else */
                             if (finalCutStatus) {
-                                outLines.push(`2DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
+                                outLines.push(`${TARGET_2D_CUT},${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                             } else {
-                                outLines.push(`2DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
+                                outLines.push(`${TARGET_2D_TKT},${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                             }
                         } else if (dataLen == 3) {
                             if (finalBoxStatus) {
-                                outLines.push(`3DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_3D_BOX},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             } else if (finalCutStatus) {
-                                outLines.push(`3DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_3D_CUT},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             } else {
-                                outLines.push(`3DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_3D_TKT},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             }
                         } else if (dataLen == 4) {
                             if (finalBoxStatus) {
-                                outLines.push(`4DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_4D_BOX},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             } else if (finalCutStatus) {
-                                outLines.push(`4DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_4D_CUT},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             } else {
-                                outLines.push(`4DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_4D_TKT},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             }
                         } else if (dataLen == 5) {
                             if (finalBoxStatus) {
-                                outLines.push(`5DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_5D_BOX},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             } else if (finalCutStatus) {
-                                outLines.push(`5DCut,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_5D_CUT},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             } else {
-                                outLines.push(`5DTkt,${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
+                                outLines.push(`${TARGET_5D_TKT},${n},${qtyValueLocal ? qtyValueLocal : '1'},${amtValueLocal},`);
                             }
                         }
                     });
@@ -509,25 +577,60 @@ function groupCleanedUpDataFirstLevel(lines) {
 function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
     var prevGroup;
     var cleanedUpGroupedLines = [];
+    var propsMap = {
+        1: ['target', 'qty'],
+        2: ['target', 'qty'],
+        3: ['qty', 'isBox', 'cut', 'isOff', 'amount'],
+        4: ['qty', 'isBox', 'cut', 'isOff', 'amount'],
+        5: ['qty', 'isBox', 'cut', 'isOff', 'amount']
+    };
     cleanedUpGroupedLinesFirstLevel.forEach(group => {
         if (prevGroup) {
-            const isPrevGroupHasQty = prevGroup['beforeData'].some(line => line['qty'] && line['qty'] != '') || prevGroup['afterData'].some(line => line['qty'] && line['qty'] != '');
-            if (group['data'].length == 0) {
-                prevGroup['afterData'] = prevGroup['beforeData'].concat(group['beforeData']);
-            } else {
-                if (group['beforeData'].length > 0) {
-                    var beforeData = [];
-                    group['beforeData'].forEach(groupEntry => {
-                        if ((groupEntry['qty'] && groupEntry['qty'] != '' && !isPrevGroupHasQty) || (groupEntry['isBox'] && group['dataLen'] && group['dataLen'] < 3)) {
-                            prevGroup['afterData'].push(groupEntry);
-                        } else if (groupEntry['isBox'] && group['dataLen'] && group['dataLen'] < 3) {
-                            prevGroup['afterData'].push(groupEntry);
-                        } else {
-                            beforeData.push(groupEntry);
-                        }
+
+            // Compare prevGroup and group for properties in propsMap based on group['dataLen'] and find which has many match.
+            // If prevGroup has more match then move the beforeData to prev group
+            if (group['beforeData'] && group['beforeData'].length > 0) {
+                var prevGroupDataLen = prevGroup['dataLen'] ? prevGroup['dataLen'] : 0;
+                var groupDataLen = group['dataLen'] ? group['dataLen'] : 0;
+
+                if (groupDataLen > 0 && propsMap[groupDataLen] && prevGroupDataLen > 0 && propsMap[prevGroupDataLen]) {
+                    var prevGroupProps = propsMap[prevGroupDataLen];
+                    var prevGroupMatchCount = 0;
+                    var groupProps = propsMap[groupDataLen];
+                    var groupMatchCount = 0;
+                    var updatedPrevGroupAfterData = prevGroup['afterData'] ? prevGroup['afterData'].slice() : [];
+                    var updatedGroupBeforeData = group['beforeData'] ? group['beforeData'].slice() : [];
+                    group['beforeData'].forEach(line => {
+                        prevGroupProps.forEach(prop => {
+                            if (line[prop] && line[prop] != '') {
+                                prevGroupMatchCount++;
+                            }
+                        });
+                        groupProps.forEach(prop => {
+                            if (line[prop] && line[prop] != '') {
+                                groupMatchCount++;
+                            }
+                        });
                     });
-                    group['beforeData'] = beforeData;
+
+                    if (prevGroupMatchCount > groupMatchCount) {
+                        // Move group['beforeData'] to prevGroup['afterData'] and clear group['beforeData']
+                        updatedPrevGroupAfterData = updatedPrevGroupAfterData.concat(group['beforeData']);
+                        updatedGroupBeforeData = [];
+                    }
+
+                    prevGroup['afterData'] = updatedPrevGroupAfterData;
+                    group['beforeData'] = updatedGroupBeforeData;
                 }
+                if (prevGroupMatchCount > groupMatchCount) {
+                    prevGroup['afterData'] = prevGroup['afterData'].concat(group['beforeData']);
+                    group['beforeData'] = [];
+                }
+            }
+
+            if (group['data'].length == 0) {
+                prevGroup['afterData'] = prevGroup['afterData'].concat(group['beforeData']);
+            } else {
                 cleanedUpGroupedLines.push(group);
             }
         } else {
@@ -614,7 +717,6 @@ function getTicketType(numLen, isBox, isCut) {
     return type + suffix;
 }
 
-
 function extractWords(page) {
     const words = [];
     page.blocks.forEach(block => {
@@ -640,18 +742,78 @@ function extractWords(page) {
             col = { x: w.x, items: [] };
             columns.push(col);
         }
-
         col.items.push(w);
     });
     var values = [];
     columns.forEach(col => {
-
         col.items.sort((a, b) => a.y - b.y);
-
         //console.log("COLUMN");
         col.items.forEach(i => values.push(i.text));
     });
-
-
     return values;
+}
+
+
+function processInput() {
+    resetInput();
+    parseMessages();
+    generateTable();
+    generateFinalOutput();
+}
+
+function resetInput() {
+    // Reset url
+    document.getElementById('websiteBaseUrlSelect').selectedIndex = 0;
+    document.getElementById('websiteBaseUrlInput').value = '';
+}
+
+function winningNumberChangeListener() {
+    getWinningNumbers();
+    if (winningNumbers) {
+        document.getElementById('1dAWinningNumbers').value = winningNumbers.numberMap['1D_A'] || '';
+        document.getElementById('1dBWinningNumbers').value = winningNumbers.numberMap['1D_B'] || '';
+        document.getElementById('1dCWinningNumbers').value = winningNumbers.numberMap['1D_C'] || '';
+        document.getElementById('2dABWinningNumbers').value = winningNumbers.numberMap['2D_AB'] || '';
+        document.getElementById('2dACWinningNumbers').value = winningNumbers.numberMap['2D_AC'] || '';
+        document.getElementById('2dBCWinningNumbers').value = winningNumbers.numberMap['2D_BC'] || '';
+        document.getElementById('3dWinningNumbers').value = winningNumbers.numberMap['3D'] || '';
+        document.getElementById('4dWinningNumbers').value = winningNumbers.numberMap['4D'] || '';
+        document.getElementById('5dWinningNumbers').value = winningNumbers.numberMap['5D'] || '';
+    }
+    processInput();
+}
+
+function getWinningNumbers() {
+    // Get the winning number value 
+    const winningNumberValue = document.getElementById('lotteryWinningNumber').value;
+    localStorage.setItem('winningNumberValue', winningNumberValue);
+    winningNumbers.setNumberMap({});
+    // Store in local storage
+    if (!winningNumberValue || winningNumberValue.trim().length < 4) {
+        return null;
+    }
+    let winningNumber = '     ' + (winningNumberValue.replace(/\D/g, ''));
+
+    if (winningNumber.length > 0 && winningNumber.length < 5) {
+        console.error("Winning number must be at least 5 digits");
+    }
+
+    // Extract from right side
+    const last5 = winningNumber.length >= 5 ? winningNumber.slice(-5) : "";
+    const last4 = winningNumber.length >= 4 ? winningNumber.slice(-4) : "";
+    const last3 = winningNumber.length >= 3 ? winningNumber.slice(-3) : "";
+
+    // ABC from last 3 digits
+    const A = last3[0] || "";
+    const B = last3[1] || "";
+    const C = last3[2] || "";
+
+    // 2D combinations
+    const AB = A + B;
+    const AC = A + C;
+    const BC = B + C;
+
+    const numberMap = { "1D_A": A, "1D_B": B, "1D_C": C, "2D_AB": AB, "2D_AC": AC, "2D_BC": BC, "3D": last3, "4D": last4, "5D": last5 };
+    winningNumbers.setNumberMap(numberMap);
+    return numberMap;
 }

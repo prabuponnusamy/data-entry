@@ -3,6 +3,21 @@ const FAILED_TO_PARSE = 'FAILED TO PARSE';
 
 const INPUT_FIELD_ID = 'inputData';
 
+//1DCut 1DTkt 2DCut 2DTkt  3DBox 3DCut 3DTkt 4DBox 4DCut 4DTkt 5DBox 5DCut 5DTkt
+const TARGET_1D_TKT = '1DTkt';
+const TARGET_1D_CUT = '1DCut';
+const TARGET_2D_TKT = '2DTkt';
+const TARGET_2D_CUT = '2DCut';
+const TARGET_3D_TKT = '3DTkt';
+const TARGET_3D_CUT = '3DCut';
+const TARGET_3D_BOX = '3DBox';
+const TARGET_4D_TKT = '4DTkt';
+const TARGET_4D_CUT = '4DCut';
+const TARGET_4D_BOX = '4DBox';
+const TARGET_5D_TKT = '5DTkt';
+const TARGET_5D_CUT = '5DCut';
+const TARGET_5D_BOX = '5DBox';
+
 const dict = {
     al: "ALL",
     sct: "SET",
@@ -35,7 +50,11 @@ const replacements = [
     "DEER",
     "DIAR",
     "PORT",
-    //8
+    "DEAR----8",
+    "DEAR.8",
+    "8MANI",
+    '6MANI',
+    "3MANI",
     "DEAR 8PM",
     "DEAR1PM",
     "DEAR 1PM",
@@ -45,8 +64,19 @@ const replacements = [
     "DEAR-8",
     "DEAR 8",
     "DEAR8",
+    "DEAR-1-00PM",
+    "DEAR----1",
+    "DEAR----2",
+    "DEAR----3",
+    "DEAR----4",
+    "DEAR----5",
+    "DEAR----6",
+    "DEAR----7",
+    "DEAR----8",
+    "DEAR.1",
     "DR.8",
     "1.PM",
+    "D1",
     "1 PM",
     "1PM",
     "8PM",
@@ -62,16 +92,11 @@ const replacements = [
     "DEAR",
     "DR 1",
     "DR 6",
+    "DEAR-6",
+    "DEAR-6PM",
     "DR 8",
     "DR 3",
     "DR",
-    "KL3",
-    "KL.3",
-    "KL.6",
-    "KL.8",
-    "KL.1",
-    "KL 8",
-    "KL",
     "BOARD",
     "4D",
     "3D",
@@ -79,4 +104,4 @@ const replacements = [
     "PM",
     "BORED",
     "BORD"
-].sort((a, b) => b.length - a.length); 
+].sort((a, b) => b.length - a.length);

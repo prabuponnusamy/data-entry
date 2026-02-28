@@ -32,7 +32,6 @@ h1 {
 }
 
 span.winning-number {
-    font-size: 18px;
     font-weight: bold;
     opacity: 1;
     transform: scale(1);
@@ -154,6 +153,15 @@ input[type="text"] {
     font-family: 'Courier New', monospace;
     resize: vertical;
     padding: 10px;
+}
+
+select {
+    border: 1px solid #ddd;
+    font-size: medium;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    padding: 10px;
+    background: white;
 }
 
 input[type="text"].small-input {
@@ -397,8 +405,6 @@ textarea.copied {
 .lottery-winning-number {
     display: inline-block;
     margin-left: 20px;
-    font-weight: 700;
-    font-size: 28px;
     color: #d97706;
     /* rich amber */
     animation: popGlow 1s ease-in-out infinite alternate;
