@@ -1,4 +1,18 @@
 
+//1DCut 1DTkt 2DCut 2DTkt  3DBox 3DCut 3DTkt 4DBox 4DCut 4DTkt 5DBox 5DCut 5DTkt
+const TARGET_1D_TKT = '1DTkt';
+const TARGET_1D_CUT = '1DCut';
+const TARGET_2D_TKT = '2DTkt';
+const TARGET_2D_CUT = '2DCut';
+const TARGET_3D_TKT = '3DTkt';
+const TARGET_3D_CUT = '3DCut';
+const TARGET_3D_BOX = '3DBox';
+const TARGET_4D_TKT = '4DTkt';
+const TARGET_4D_CUT = '4DCut';
+const TARGET_4D_BOX = '4DBox';
+const TARGET_5D_TKT = '5DTkt';
+const TARGET_5D_CUT = '5DCut';
+const TARGET_5D_BOX = '5DBox';
 
 // 1D field names
 const aFieldName = "a[]";
@@ -261,7 +275,7 @@ function insertDataIntoFields(valuesToInsert, type, showData) {
     //alert("No of entries to insert: " + valuesToInsert.length);
     const addButton = document.querySelector('.add_field_button');
     validateDataLength(type, valuesToInsert);
-    if (type === "1d_tkt") {
+    if (type === TARGET_1D_TKT) {
         let first = true;
 
         valuesToInsert.forEach(line => {
@@ -305,7 +319,7 @@ function insertDataIntoFields(valuesToInsert, type, showData) {
             }
         });
 
-    } else if (type === "2d_tkt") {
+    } else if (type === TARGET_2D_TKT) {
         let first = true;
 
         valuesToInsert.forEach(line => {
@@ -350,10 +364,10 @@ function insertDataIntoFields(valuesToInsert, type, showData) {
         });
 
     } else if (
-        type === "3d_box" ||
-        type === "3d_tkt" ||
-        type === "4d_box" ||
-        type === "4d_tkt"
+        type === TARGET_3D_BOX ||
+        type === TARGET_3D_TKT ||
+        type === TARGET_4D_BOX ||
+        type === TARGET_4D_TKT
     ) {
         let first = true;
 
@@ -373,7 +387,7 @@ function insertDataIntoFields(valuesToInsert, type, showData) {
             setLastValue(abcQtyFieldName, qty);
         });
 
-    } else if (type === "5d_tkt") {
+    } else if (type === TARGET_5D_TKT) {
         let first = true;
 
         valuesToInsert.forEach((line, index) => {
@@ -399,13 +413,13 @@ function insertDataIntoFields(valuesToInsert, type, showData) {
  */
 function validateDataLength(type, values) {
     const expectedLength = {
-        "1d_tkt": 1,
-        "2d_tkt": 2,
-        "3d_tkt": 3,
-        "3d_box": 3,
-        "4d_tkt": 4,
-        "4d_box": 4,
-        "5d_tkt": 5
+        [TARGET_1D_TKT]: 1,
+        [TARGET_2D_TKT]: 2,
+        [TARGET_3D_TKT]: 3,
+        [TARGET_3D_BOX]: 3,
+        [TARGET_4D_TKT]: 4,
+        [TARGET_4D_BOX]: 4,
+        [TARGET_5D_TKT]: 5
     }[type];
 
     values.filter(v => v.trim() !== "").forEach(line => {
@@ -419,7 +433,7 @@ function validateDataLength(type, values) {
             alert(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
             throw new Error(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
         }
-        if (type === "1d_tkt"  || type === "2d_tkt") {
+        if (type === TARGET_1D_TKT  || type === TARGET_2D_TKT) {
             const targetPart = (line.split(",")[2] ? line.split(",")[2].trim().toUpperCase() : null)?.split("-").map(t => t.trim());
             const validTargets = ["A", "B", "C", "AB", "BC", "AC", "ALL"];
             if (!targetPart || !targetPart.every(t => validTargets.includes(t))) {

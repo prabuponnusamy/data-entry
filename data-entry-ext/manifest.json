@@ -39,7 +39,7 @@
         "https://abidear.com/*",
         "https://chandhni.com/*"
       ],
-      "js": ["content-script.js"],
+      "js": ["js/ext/content-script.js"],
       "css": ["styles.css"]
     }
   ],

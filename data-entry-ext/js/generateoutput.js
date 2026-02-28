@@ -16,16 +16,7 @@ function renderFinalOutput(messageGroup, message, hasError) {
             <tbody><tr>`;
     var idx = 0;
     var allowedListSize = 40;
-    const _1DAWinningNumber = (document.getElementById('1dAWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _1DBWinningNumber = (document.getElementById('1dBWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _1DCWinningNumber = (document.getElementById('1dCWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _2DABWinningNumber = (document.getElementById('2dABWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _2DACWinningNumber = (document.getElementById('2dACWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _2DBCWinningNumber = (document.getElementById('2dBCWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _3DWinningNumber = (document.getElementById('3dWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _4DWinningNumber = (document.getElementById('4dWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-    const _5DWinningNumber = (document.getElementById('5dWinningNumbers').value || '').split(',').filter(n => n.trim() !== '').map(n => n.trim());
-
+   
     sortedKeys.forEach(function (key, index) {
         const values = messageGroup[key];
         let output = '';
@@ -58,49 +49,20 @@ function renderFinalOutput(messageGroup, message, hasError) {
             if (idx % 6 === 0 && idx !== 0) {
                 table += `</tr><tr>`;
             }
-
-            // Iterate and find the winning number in the sublist. Value in the format number,qty,target
-            winningNumberLine = sublist.find(line => {
-                splits = line.split(',');
-                number = splits[0] || '';
-                qty = splits[1] || '';
-                target = splits[2] || '';
-                if (isOneD) {
-                    if ('ALL' == target) {
-                        return _1DAWinningNumber.includes(number) || _1DBWinningNumber.includes(number) || _1DCWinningNumber.includes(number);
-                    } else if ('A' == target) {
-                        return _1DAWinningNumber.includes(number);
-                    } else if ('B' == target) {
-                        return _1DBWinningNumber.includes(number);
-                    } else if ('C' == target) {
-                        return _1DCWinningNumber.includes(number);
-                    }
-                } else if (isTwoD) {
-                    if ('ALL' == target) {
-                        return _2DABWinningNumber.includes(number) || _2DACWinningNumber.includes(number) || _2DBCWinningNumber.includes(number);
-                    } else if ('AB' == target) {
-                        return _2DABWinningNumber.includes(number);
-                    } else if ('AC' == target) {
-                        return _2DACWinningNumber.includes(number);
-                    } else if ('BC' == target) {
-                        return _2DBCWinningNumber.includes(number);
-                    }
-                } else if (isThreeD) {
-                    return _3DWinningNumber.includes(number);
-                } else if (isFourD) {
-                    return _4DWinningNumber.includes(number);
-                } else if (isFiveD) {
-                    return _5DWinningNumber.includes(number);
+            //🎉 ${match.join(', ')} 🎉
+            var match = [];
+            sublist.forEach(line => {
+                var matches = getWinningNumberMatchFromOutputLine(key.substring(0, 5), line);
+                if (matches.length > 0) {
+                    match.push(...matches);
                 }
-                return false;
             });
-
             // create new text area dont show buttons if has error 
             table += `<td>
                     <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
-                    <span class="lottery-winning-number">${winningNumberLine ? '🎉 ' + winningNumberLine + ' 🎉' : ''}</span>
+                    ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                     <div>
-                        ${hasError ? '' : `<button class="fill-btn" data-action="fill" data-target="${key}" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Fill</button>
+                        ${hasError ? '' : `<button class="fill-btn" data-action="fill" data-target="${key.substring(0, 5)}" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Fill</button>
                         <button class="copy-btn" data-action="copy" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button>`}
                         <textarea name="formatted-output" class="output-textarea" placeholder="Formatted output..." rows="20">${sublist.join('\n')}</textarea>
                     </div>
@@ -110,6 +72,18 @@ function renderFinalOutput(messageGroup, message, hasError) {
     table += `</tr></tbody></table>`;
     // Append to finalOutputContent div
     document.getElementById('finalOutputContent').innerHTML += table;
+}
+
+
+function getWinningNumberMatchFromOutputLine(key, value) {
+    const values = value.split(',');
+    if (values.length >= 3) {
+        var val = values[0].trim();
+        var target = values[2].trim();
+        //{ "1D_A": A, "1D_B": B, "1D_C": C, "2D_AB": AB, "2D_AC": AC, "2D_BC": BC, "3D": last3, "4D": last4, "5D": last5 };
+        return getWinningNumberMatch(key, val, target);
+    }
+    return [];
 }
 
 function generateFinalOutput() {

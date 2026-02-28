@@ -7,9 +7,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
                 if (tabId === tab.id && info.status === "complete") {
-                    
                     chrome.tabs.onUpdated.removeListener(listener);
-
                     chrome.scripting.executeScript({
                         target: { tabId: tab.id },
                         function: fillData,
