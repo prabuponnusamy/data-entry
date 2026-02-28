@@ -553,13 +553,20 @@ function groupCleanedUpDataFirstLevel(lines) {
     var cleanedUpGroupedLines = [];
     group = { "data": [], "beforeData": [], "afterData": [], "dataLen": 0 };
     cleanedUpGroupedLines.push(group);
+    var prevLine;
     lines.forEach(line => {
+        var prevLineBkup = prevLine;
+        prevLine = line;
         if (line.data && line.data.length > 0) {
             dataLen = (line['data'][0]['number']).length;
             if (group['dataLen'] > 0 && dataLen != group['dataLen']) {
                 group = { "data": [], "beforeData": [], "afterData": [], "dataLen": dataLen };
                 cleanedUpGroupedLines.push(group);
+            } else if (group['dataLen'] > 2 && prevLineBkup && prevLineBkup['isBox'] != line['isBox']) {
+                group = { "data": [], "beforeData": [], "afterData": [], "dataLen": dataLen };
+                cleanedUpGroupedLines.push(group);
             }
+
             group['dataLen'] = dataLen;
             group['data'].push(line);
         } else if (group['data'].length == 0) {
@@ -571,11 +578,15 @@ function groupCleanedUpDataFirstLevel(lines) {
             group['beforeData'].push(line);
         }
     });
+    if (group['data'].length == 0 && cleanedUpGroupedLines.length > 1) {
+        cleanedUpGroupedLines[cleanedUpGroupedLines.length - 2]['afterData'] = cleanedUpGroupedLines[cleanedUpGroupedLines.length - 2]['afterData'].concat(group['beforeData']);
+        cleanedUpGroupedLines.pop();
+    }
     return cleanedUpGroupedLines;
 }
 
 function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
-    var prevGroup;
+    
     var cleanedUpGroupedLines = [];
     var propsMap = {
         1: ['target', 'qty'],
@@ -584,9 +595,11 @@ function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
         4: ['qty', 'isBox', 'cut', 'isOff', 'amount'],
         5: ['qty', 'isBox', 'cut', 'isOff', 'amount']
     };
+
+    cleanedUpGroupedLinesFirstLevel =cleanupDuplicateDataInGroupedLines(cleanedUpGroupedLinesFirstLevel, propsMap);
+    var prevGroup;
     cleanedUpGroupedLinesFirstLevel.forEach(group => {
         if (prevGroup) {
-
             // Compare prevGroup and group for properties in propsMap based on group['dataLen'] and find which has many match.
             // If prevGroup has more match then move the beforeData to prev group
             if (group['beforeData'] && group['beforeData'].length > 0) {
@@ -632,6 +645,8 @@ function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
         }
         prevGroup = group;
     });
+    cleanedUpGroupedLinesFirstLevel = cleanupDuplicateDataInGroupedLines(cleanedUpGroupedLinesFirstLevel, propsMap);
+
     cleanedUpGroupedLines.forEach(group => {
         var groupQty;
         if (group['beforeData'] && group['beforeData'].length > 0) {
@@ -663,6 +678,53 @@ function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
         }
     });
     return cleanedUpGroupedLines;
+}
+
+function cleanupDuplicateDataInGroupedLines(cleanedUpGroupedLinesFirstLevel, propsMap) {
+    for (let i = cleanedUpGroupedLinesFirstLevel.length - 1; i >= 0; i--) {
+        const group = cleanedUpGroupedLinesFirstLevel[i];
+        if (i > 0) {
+            const prevGroup = cleanedUpGroupedLinesFirstLevel[i - 1];
+            groupLen = group['dataLen'] ? group['dataLen'] : 0;
+            prevGroupLen = prevGroup['dataLen'] ? prevGroup['dataLen'] : 0;
+
+            //properties in after data of group
+            afterDataProps = {};
+            if (group['afterData'] && group['afterData'].length > 0 && propsMap[groupLen]) {
+                
+                group['afterData'].forEach(line => {
+                    propsMap[groupLen].forEach(prop => {
+                        if (line[prop] && line[prop] != '') {
+                            if (!afterDataProps[prop]) {
+                                afterDataProps[prop] = [];
+                            }
+                            if (!afterDataProps[prop].includes(line[prop])) {
+                                afterDataProps[prop].push(line[prop]);
+                            }
+                        }
+                    });
+                });
+            }
+            // Iterate propertis in before data of group
+            // If same property in after data found then move the line to prev group after data and remove from current group
+            if (group['beforeData'] && group['beforeData'].length > 0 && propsMap[prevGroupLen]) {
+                var updatedPrevGroupAfterData = prevGroup['afterData'] ? prevGroup['afterData'].slice() : [];
+                var updatedGroupBeforeData = group['beforeData'] ? group['beforeData'].slice() : [];
+                group['beforeData'].forEach(line => {
+                    propsMap[prevGroupLen].forEach(prop => {
+                        if (line[prop] && line[prop] != '' && afterDataProps[prop] && afterDataProps[prop] != '') {
+                            // Move line to prev group after data and remove from current group before data
+                            updatedPrevGroupAfterData.push(line);
+                            updatedGroupBeforeData = updatedGroupBeforeData.filter(l => l !== line);
+                        }
+                    });
+                });
+                prevGroup['afterData'] = updatedPrevGroupAfterData;
+                group['beforeData'] = updatedGroupBeforeData;
+            }
+        }
+    }
+    return cleanedUpGroupedLinesFirstLevel;
 }
 
 /**
