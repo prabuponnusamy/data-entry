@@ -611,20 +611,14 @@ function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
                                 groupMatchCount++;
                             }
                         });
+                        if (prevGroupMatchCount > groupMatchCount) {
+                            // Move group['beforeData'] to prevGroup['afterData'] and clear group['beforeData']
+                            updatedPrevGroupAfterData.push(line);
+                            updatedGroupBeforeData = updatedGroupBeforeData.filter(l => l !== line);
+                        }
                     });
-
-                    if (prevGroupMatchCount > groupMatchCount) {
-                        // Move group['beforeData'] to prevGroup['afterData'] and clear group['beforeData']
-                        updatedPrevGroupAfterData = updatedPrevGroupAfterData.concat(group['beforeData']);
-                        updatedGroupBeforeData = [];
-                    }
-
                     prevGroup['afterData'] = updatedPrevGroupAfterData;
                     group['beforeData'] = updatedGroupBeforeData;
-                }
-                if (prevGroupMatchCount > groupMatchCount) {
-                    prevGroup['afterData'] = prevGroup['afterData'].concat(group['beforeData']);
-                    group['beforeData'] = [];
                 }
             }
 
