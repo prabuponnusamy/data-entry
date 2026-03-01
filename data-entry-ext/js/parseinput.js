@@ -573,9 +573,15 @@ function groupCleanedUpDataFirstLevel(lines) {
             group['beforeData'].push(line);
         } else {
             // New array from group['afterData'] and assign to group['beforeData']
-            group = { "data": [], "beforeData": [], "afterData": [], "dataLen": 0 };
-            cleanedUpGroupedLines.push(group);
-            group['beforeData'].push(line);
+            if (line['qty'] && line['qty'] != '' && !group['beforeData'].some(b => b['qty'] && b['qty'] != '')) {
+                group['afterData'].push(line);
+                group = { "data": [], "beforeData": [], "afterData": [], "dataLen": 0 };
+                cleanedUpGroupedLines.push(group);
+            } else {
+                group = { "data": [], "beforeData": [], "afterData": [], "dataLen": 0 };
+                cleanedUpGroupedLines.push(group);
+                group['beforeData'].push(line);
+            }
         }
     });
     if (group['data'].length == 0 && cleanedUpGroupedLines.length > 1) {
@@ -586,7 +592,7 @@ function groupCleanedUpDataFirstLevel(lines) {
 }
 
 function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
-    
+
     var cleanedUpGroupedLines = [];
     var propsMap = {
         1: ['target', 'qty'],
@@ -596,7 +602,7 @@ function groupCleanedUpDataSecondLevel(cleanedUpGroupedLinesFirstLevel) {
         5: ['qty', 'isBox', 'cut', 'isOff', 'amount']
     };
 
-    cleanedUpGroupedLinesFirstLevel =cleanupDuplicateDataInGroupedLines(cleanedUpGroupedLinesFirstLevel, propsMap);
+    cleanedUpGroupedLinesFirstLevel = cleanupDuplicateDataInGroupedLines(cleanedUpGroupedLinesFirstLevel, propsMap);
     var prevGroup;
     cleanedUpGroupedLinesFirstLevel.forEach(group => {
         if (prevGroup) {
@@ -691,7 +697,7 @@ function cleanupDuplicateDataInGroupedLines(cleanedUpGroupedLinesFirstLevel, pro
             //properties in after data of group
             afterDataProps = {};
             if (group['afterData'] && group['afterData'].length > 0 && propsMap[groupLen]) {
-                
+
                 group['afterData'].forEach(line => {
                     propsMap[groupLen].forEach(prop => {
                         if (line[prop] && line[prop] != '') {
