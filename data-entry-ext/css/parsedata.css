@@ -12,6 +12,14 @@ body {
     font-size: medium;
 }
 
+html {
+    scroll-padding-top: 100px;
+}
+
+:target {
+    scroll-margin-top: 100px;
+}
+
 .container {
     margin: 0 auto;
     background: white;
@@ -129,6 +137,14 @@ textarea:focus {
 }
 
 .button-group {
+    display: flex;
+    gap: 12px;
+}
+
+.message-links {
+    overflow: scroll;
+    max-width: 100%;
+    padding: 15px;
     display: flex;
     gap: 12px;
 }
@@ -263,6 +279,21 @@ button:disabled {
     background: #ffebee;
     color: #c62828;
     border: 1px solid #ef9a9a;
+}
+/*SEt styles for clicked link also*/
+ a.error-link-red:visited {
+    background: #ffebee;
+    color: #c62828;
+    font-weight: bold;
+ }
+a.error-link-red{
+    background: yellow;
+    color: #c62828;
+    font-weight: bold;
+}
+
+a:visited {
+    color: #1023f1;
 }
 
 textarea.error-output {

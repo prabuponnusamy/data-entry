@@ -16,7 +16,7 @@ function renderFinalOutput(messageGroup, message, hasError) {
             <tbody><tr>`;
     var idx = 0;
     var allowedListSize = 40;
-   
+
     sortedKeys.forEach(function (key, index) {
         const values = messageGroup[key];
         let output = '';
@@ -107,6 +107,7 @@ function generateFinalOutput() {
     label = 'First';
 
     errorMessages = [];
+    links = [];
     var totalRecords = 0;
     var keys = [];
     formattedMessages.forEach((textarea, index) => {
@@ -114,13 +115,12 @@ function generateFinalOutput() {
         // split content by new line and store
         values = content.split('\n').filter(line => line.replaceAll('"', '').trim() !== '');
         totalRecords += values.length;
+        var isError = false;
+        var _link = `<a href="#original-msg-${index}">${index + 1}</a>`;
         values.forEach(line => {
             if (line.includes(FAILED_TO_PARSE)) {
                 errorMessages.push('Failed to parse: ' + line + ', <a href="#original-msg-' + (index) + '" class="error-link">Go to message #' + (index + 1) + '</a>');
-                // set color to red for textarea
-                textarea.classList.add('error-output');
-                // Add a attribute data-error to textarea
-                textarea.setAttribute('data-error', 'true');
+                isError = true;
                 return;
             }
             valueSplits = line.split(',');
@@ -152,64 +152,39 @@ function generateFinalOutput() {
                 case '1':
                     if (valueSplits[1].length != 1) {
                         errorMessages.push('1D Ticket number length should be 1 digit only: ' + valueSplits[1] + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
-                        // Set id to textarea
+                        isError = true;
                     }
                     if (valueSplits[4] == '') {
                         errorMessages.push('Target (Last value) must not be empty for: ' + line + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
-                        // Set id to textarea
+                        isError = true;
                     }
                     break;
                 case '2':
                     if (valueSplits[1].length != 2) {
                         errorMessages.push('2D Ticket number length should be 2 digits only: ' + valueSplits[1] + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
-                        // Set id to textarea
+                        isError = true;
                     }
                     if (valueSplits[4] == '') {
                         errorMessages.push('Target (Last value) must not be empty for: ' + line + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
-                        // Set id to textarea
+                        isError = true;
                     }
                     break;
                 case '3':
                     if (valueSplits[1].length != 3) {
                         errorMessages.push('3D Ticket number length should be 3 digits only: ' + valueSplits[1] + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
+                        isError = true;
                     }
                     break;
                 case '4':
                     if (valueSplits[1].length != 4) {
                         errorMessages.push('4D Ticket number length should be 4 digits only: ' + valueSplits[1] + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
+                        isError = true;
                     }
                     break;
                 case '5':
                     if (valueSplits[1].length != 5) {
                         errorMessages.push('5D Ticket number length should be 5 digits only: ' + valueSplits[1] + ', <a href="#original-msg-' + (index) + '">Go to message #' + (index + 1) + '</a>');
-                        // set color to red for textarea
-                        textarea.classList.add('error-output');
-                        // Add a attribute data-error to textarea
-                        textarea.setAttribute('data-error', 'true');
+                        isError = true;
                     }
                     break;
             }
@@ -217,11 +192,9 @@ function generateFinalOutput() {
             if (valueSplits[2] === '') {
                 //alert('Quantity is missing for line: ' + line);
                 errorMessages.push('Quantity is missing for line: ' + line);
-                // set color to red for textarea
-                textarea.classList.add('error-output');
-                // Add a attribute data-error to textarea
-                textarea.setAttribute('data-error', 'true');
+                isError = true;
             }
+            
 
             l = valueSplits[1] + ',' + valueSplits[2] + ',' + targetValue;
             if (messageGroup[key]) {
@@ -230,6 +203,16 @@ function generateFinalOutput() {
                 messageGroup[key] = [l];
             }
         });
+        if (isError) {
+            _link = `<a href="#original-msg-${index}" class="error-link-red">${index + 1}</a>`;
+            // change color of the textarea border to red
+            // set color to red for textarea
+            textarea.classList.add('error-output');
+            // Add a attribute data-error to textarea
+            textarea.setAttribute('data-error', 'true');
+            // Set id to textarea
+        }
+        links.push(_link);
     });
     Object.keys(messageGroup).forEach(key => keys.push(key));
     renderFinalOutput(messageGroup, label, errorMessages.length > 0);
@@ -244,5 +227,6 @@ function generateFinalOutput() {
     } else {
         showSuccessMessages(['Total records: ' + totalRecords + '. Final output generated successfully!']);
     }
+    document.getElementById('errorLinks').innerHTML = links.join('');
 
 }
