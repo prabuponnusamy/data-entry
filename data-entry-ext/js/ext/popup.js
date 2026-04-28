@@ -14,7 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'akshayajackpot.com',
         'anushuya.com',
         'abidear.com',
-        'chandhni.com'
+        'chandhni.com',
+        'deeksitha.com',
+        'prksha.com'
     ];
 
     // Handle Parse Data button
