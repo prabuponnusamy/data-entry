@@ -18,7 +18,9 @@
     "https://akshayajackpot.com/*",
     "https://anushuya.com/*",
     "https://abidear.com/*",
-    "https://chandhni.com/*"
+    "https://chandhni.com/*",
+    "https://deeksitha.com/*",
+    "https://prksha.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
