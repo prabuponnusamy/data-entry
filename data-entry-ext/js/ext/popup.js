@@ -82,7 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     target1D2D: target1D2D,
                     showData: document.getElementById('showDataChkbox').checked ? true : false
                 }, (response) => {
-                    console.log('Response from content script:', response);
+                    if (chrome.runtime.lastError) {
+                        console.error('Error sending message:', chrome.runtime.lastError);
+                    } else {
+                        console.log('Response from content script:', response);
+                    }
                 });
             });
 
@@ -96,7 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 chrome.tabs.sendMessage(tab.id, {
                     action: 'clearData'
                 }, (response) => {
-                    console.log('Response from content script:', response);
+                    if (chrome.runtime.lastError) {
+                        console.error('Error sending message:', chrome.runtime.lastError);
+                    } else {
+                        console.log('Response from content script:', response);
+                    }
                 });
             });
         });
