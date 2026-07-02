@@ -10,44 +10,56 @@
 
 <body>
     <div class="container header-section float-section"> <!-- Add borders-->
-        <div id="buttonGroupSection" class="button-group"> <input type="file" id="zipInput" accept=".zip"> <button
-                id="processZipBtn" class="btn btn-primary btn-sm">Process Zip</button> <button id="parseInputBtn"
-                class="btn btn-primary btn-sm hide_ele">Parse Data</button> <button id="processBtn"
-                class="btn btn-primary btn-sm hide_ele">Process Data</button> <button id="generateFinalOutputBtn"
-                class="btn btn-primary btn-sm">Gen Output</button> <button id="saveInputDataBtn"
-                class="btn btn-secondary btn-sm">Save Input</button> <a href="#status-message"
-                class="btn btn-primary btn-sm" title="Go to Top">Top</a>
-                <!-- Convert the below to dropdown  -->
-                <select id="websiteBaseUrlSelect" style="width: 320px;">
-                    <option value="">Select an option</option>
+        <div id="buttonGroupSection" class="button-group">
+            <div>
+                <input type="file" id="zipInput" accept=".zip">
+                <button id="processZipBtn" class="btn btn-primary btn-sm">Process Zip</button>
+                <button id="parseInputBtn" class="btn btn-primary btn-sm hide_ele">Parse Data</button>
+                <button id="processBtn" class="btn btn-primary btn-sm hide_ele">Process Data</button>
+                <button id="generateFinalOutputBtn" class="btn btn-primary btn-sm">Gen Output</button>
+                <button id="saveInputDataBtn" class="btn btn-secondary btn-sm hide_ele">Save
+                    Input</button>
+            </div>
+            <a href="#status-message" class="btn btn-primary btn-sm" title="Go to Top">Top</a>
+            <!-- Convert the below to dropdown  -->
+            <select id="websiteBaseUrlSelect">
+                <option value="">Select an option</option>
+                <optgroup label="Anushuya">
                     <option value="https://anushuya.com/employee/drawOne/">Anushuya Draw1</option>
                     <option value="https://anushuya.com/employee/drawTwo/">Anushuya Draw2</option>
                     <option value="https://anushuya.com/employee/drawThree/">Anushuya Draw3</option>
+                </optgroup>
+                <optgroup label="Abidear">
                     <option value="https://abidear.com/employee/drawOne/">Abidear Draw1</option>
                     <option value="https://abidear.com/employee/drawTwo/">Abidear Draw2</option>
                     <option value="https://abidear.com/employee/drawThree/">Abidear Draw3</option>
+                </optgroup>
+                <optgroup label="Deeksitha">
                     <option value="https://deeksitha.com/employee/draw/1/">Deeksitha Draw1</option>
                     <option value="https://deeksitha.com/employee/draw/2/">Deeksitha Draw2</option>
                     <option value="https://deeksitha.com/employee/draw/3/">Deeksitha Draw3</option>
-
+                </optgroup>
+                <optgroup label="KL Poorna">
                     <option value="https://klpoorna.com/employee/draw/1/">KL Poorna Draw1</option>
                     <option value="https://klpoorna.com/employee/draw/2/">KL Poorna Draw2</option>
                     <option value="https://klpoorna.com/employee/draw/3/">KL Poorna Draw3</option>
-
+                </optgroup>
+                <optgroup label="Prksha">
                     <option value="https://prksha.com/employee/draw/1/">Prksha Draw1</option>
                     <option value="https://prksha.com/employee/draw/2/">Prksha Draw2</option>
                     <option value="https://prksha.com/employee/draw/3/">Prksha Draw3</option>
+                </optgroup>
+                <optgroup label="Others">
                     <option value="https://orangepblw.com/employee/order/">Orangepblw</option>
                     <option value="https://rajasree.org/employee/order/">Rajasree</option>
                     <option value="https://sameeraa.com/employee/order/">Sameeraa</option>
-                </select>
-                <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee" style="width: 320px;">
-                <select id="targetTime" style="width: 150px;">
-                    <option value="na">NA</option>
-                    <option value="one">1 PM</option>
-                    <option value="two">6 PM</option>
-                    <option value="three">8 PM</option>
-                </select>
+                </optgroup>
+            </select>
+            <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee">
+            <div id="target-page-input">
+
+            </div>
+            <input type="text" id="supplierId" placeholder="Supplier Name">
         </div>
         <div id="errorLinks" class="message-links"></div>
         <ul class="tab-nav" id="myTab" role="tablist"> <button class="tab-button active" id="input-tab"
@@ -61,9 +73,10 @@
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane active" id="input-tab-pane" role="tabpanel">
                 <div class="row">
-                    <div class="col"> <label for="inputData">Input Data <a href="#" class="copy-whatsapp" data-action="copy-whatsapp"
-                                title="Copy">Copy</a></label> <textarea id="inputData" class="input-textarea" rows="25"
-                            placeholder="Paste WhatsApp data here..."></textarea> </div>
+                    <div class="col"> <label for="inputData">Input Data <a href="#" class="copy-whatsapp"
+                                data-action="copy-whatsapp" title="Copy">Copy</a></label> <textarea id="inputData"
+                            class="input-textarea" rows="25" placeholder="Paste WhatsApp data here..."></textarea>
+                    </div>
                     <div class="col"> <label for="outputData">Output Data</label> <textarea id="outputData"
                             class="output-area" rows="25" placeholder="Paste copilot generated data here..."></textarea>
                     </div>
@@ -89,37 +102,38 @@
                         <!-- Winnning numbers- Header: Winning Numbers. Fields : 1D-A, 1D-B, 1D-C, 2D-AB. 2D-AC, 2D-BC, 3D, 4D, 5D -->
                         <p class="margin-top-small section-title"><b>Winning number</b></p>
 
-                        <input type="text" id="lotteryWinningNumber" class="form-control large-input" placeholder="Winning number">
+                        <input type="text" id="lotteryWinningNumber" class="form-control large-input"
+                            placeholder="Winning number">
                         <p class="margin-top-small section-title"><b>Winning number: 1D</b></p>
                         <label class="normal-label">1D-A: <input type="text" id="1dAWinningNumbers"
                                 class="form-control small-input" disabled length="1">
-                            </label>
+                        </label>
                         <label class="normal-label">1D-B: <input type="text" id="1dBWinningNumbers"
                                 class="form-control small-input" length="1" disabled>
-                            </label>
+                        </label>
                         <label class="normal-label">1D-C: <input type="text" id="1dCWinningNumbers"
                                 class="form-control small-input" length="1" disabled>
-                            </label>
+                        </label>
                         <p class="margin-top-small section-title"><b>Winning number: 2D</b></p>
                         <label class="normal-label">2D-AB: <input type="text" id="2dABWinningNumbers"
                                 class="form-control small-input" length="2" disabled>
-                            </label>
+                        </label>
                         <label class="normal-label">2D-AC: <input type="text" id="2dACWinningNumbers"
                                 class="form-control small-input" length="2" disabled>
-                            </label>
+                        </label>
                         <label class="normal-label">2D-BC: <input type="text" id="2dBCWinningNumbers"
                                 class="form-control small-input" length="2" disabled>
-                            </label>
+                        </label>
                         <p class="margin-top-small section-title"><b>Winning number: 3D/4D/5D</b></p>
                         <label class="normal-label">3D: <input type="text" id="3dWinningNumbers"
                                 class="form-control small-input" length="3" disabled>
-                            </label>
+                        </label>
                         <label class="normal-label">4D: <input type="text" id="4dWinningNumbers"
                                 class="form-control small-input" length="4" disabled>
-                            </label>
+                        </label>
                         <label class="normal-label">5D: <input type="text" id="5dWinningNumbers"
                                 class="form-control medium-input" length="5" disabled>
-                            </label>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -137,6 +151,7 @@
     <script src="js/normalizetext.js"></script>
     <script src="js/spellchecker.js"></script>
 
+    <script src="js/readtargetinput.js"></script>
     <script src="js/common.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/english_word_list.js"></script>

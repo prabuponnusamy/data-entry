@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     chrome.scripting.executeScript({
                         target: { tabId: tab.id },
                         function: fillData,
-                        args: [message.payload, message.target]
+                        args: [message.payload, message.target, message.supplierValueLabel, message.targetTkt]
                     });
                 }
             });
@@ -19,8 +19,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-function fillData(data, target) {
+function fillData(data, target, supplierValueLabel, targetTkt) {
     const rows = data.split("\n");
-    //alert("Data received in content script for target: " + target + "\nData:\n" + data);
-    insertDataIntoFields(rows, target, false);
+    // alert("Data received in content script for target: " + target + "\nData:\n" + data);
+    //alert(targetTkt);
+    insertDataIntoFields(rows, target, false, supplierValueLabel, targetTkt);
 }

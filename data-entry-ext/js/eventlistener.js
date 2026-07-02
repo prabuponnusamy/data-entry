@@ -13,8 +13,8 @@ function copyTextWithNewLine(txt) {
 function openNewTabWithData(actionEl) {
     //alert("Opening new tab with target: " + target + " and data:\n" + data);
     websiteBaseUrl = document.getElementById('websiteBaseUrlInput').value;
-    targetTime = document.getElementById('targetTime').value;
     target = actionEl.dataset.target;
+    targetkey = actionEl.dataset.targetkey
     if (websiteBaseUrl == '') {
         alert('Please enter the website base URL. Eg https://abidear.com/employee');
         return
@@ -49,11 +49,14 @@ function openNewTabWithData(actionEl) {
     const url = websiteBaseUrl+ (websiteBaseUrl.substring(websiteBaseUrl.length - 1) === '/' || urlSuffix[target].startsWith('/') ? '' : '/') + (urlSuffix[target] || '');
 
     var data = copyTextarea(actionEl);
+    var supplierValueLabel = document.getElementById("supplierId")?.value;
     chrome.runtime.sendMessage({
         action: "openAndFill",
         payload: data,
         url: url,
-        target: target
+        target: target,
+        supplierValueLabel: supplierValueLabel,
+        targetTkt: targetkey
     });
 }
 

@@ -50,3 +50,33 @@ class WinningNumbers {
         return this.numberMap;
     }
 }
+
+function getSelectedWebsiteBaseUrl() {
+    return document.getElementById('websiteBaseUrlInput').value;
+}
+
+function getAllowedTargets() {
+    return [TARGET_1D_TKT, TARGET_2D_TKT, 
+        TARGET_3D_TKT, TARGET_3D_BOX, 
+        TARGET_4D_TKT, TARGET_4D_BOX, TARGET_5D_TKT];
+}
+
+function isValidTarget(target) {
+    return getAllowedTargets().includes(target);
+}
+
+function getTargetUrlSuffix(target) {
+    const urlSuffix = {
+        [TARGET_1D_TKT]: '1dticket', [TARGET_2D_TKT]: '2dticket', [TARGET_3D_TKT]: '3dticket', [TARGET_4D_TKT]: '4dticket', [TARGET_5D_TKT]: '5dticket',
+            [TARGET_3D_BOX]: '3dbox', [TARGET_4D_BOX]: '4dbox'
+    };
+    return urlSuffix[target] || '';
+}
+
+function buildTargetUrl(websiteBaseUrl, target) {
+    var targetUrlSuffix = getTargetUrlSuffix(target);
+    return websiteBaseUrl + 
+        (websiteBaseUrl.substring(websiteBaseUrl.length - 1) === '/' 
+        || targetUrlSuffix.startsWith('/') ? '' : '/') + 
+        targetUrlSuffix;
+}

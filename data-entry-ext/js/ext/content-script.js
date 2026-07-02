@@ -271,10 +271,60 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
     }
 }
 
-function insertDataIntoFields(valuesToInsert, type, showData) {
+function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt) {
     //alert("No of entries to insert: " + valuesToInsert.length);
-    const addButton = document.querySelector('.add_field_button');
+    //alert(`Supplier id ${supplierId}, target tkt ${targetTkt}`);
+
+    const addButton = document.querySelector(".add_field_button");
     validateDataLength(type, valuesToInsert);
+
+    // Select Supplier
+    if (supplierId) {
+        const supplierField = document.querySelector('select[name="supplier"]');
+
+        if (supplierField) {
+            for (const option of supplierField.options) {
+                //console.log("Supplier:", option.text, supplierId);
+
+                if (option.text.trim().startsWith(String(supplierId).trim())) {
+                    supplierField.value = option.value;
+                    supplierField.dispatchEvent(new Event("change", { bubbles: true }));
+                    console.log("Supplier selected:", option.text);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Select Ticket
+    if (targetTkt) {
+        // Example: 3DTkt70 -> 3D_70
+        const targetTktOpt = targetTkt
+            .toUpperCase()
+            .replace("TKT", "_");
+
+        const rateField = document.getElementById("rate");
+
+        if (rateField) {
+            let found = false;
+
+            for (const option of rateField.options) {
+                console.log("Ticket:", option.value, targetTktOpt);
+
+                if (option.value.toUpperCase().startsWith(targetTktOpt)) {
+                    rateField.value = option.value;
+                    rateField.dispatchEvent(new Event("change", { bubbles: true }));
+                    console.log("Ticket selected:", option.value);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                console.warn("No matching ticket found for:", targetTktOpt);
+            }
+        }
+    }
     if (type === TARGET_1D_TKT) {
         let first = true;
 
@@ -433,7 +483,7 @@ function validateDataLength(type, values) {
             alert(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
             throw new Error(`Invalid quantity for ${type}: ${qtyPart} (must be a positive number)`);
         }
-        if (type === TARGET_1D_TKT  || type === TARGET_2D_TKT) {
+        if (type === TARGET_1D_TKT || type === TARGET_2D_TKT) {
             const targetPart = (line.split(",")[2] ? line.split(",")[2].trim().toUpperCase() : null)?.split("-").map(t => t.trim());
             const validTargets = ["A", "B", "C", "AB", "BC", "AC", "ALL"];
             if (!targetPart || !targetPart.every(t => validTargets.includes(t))) {
