@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 function fillData(data, target, supplierValueLabel, targetTkt) {
     const rows = data.split("\n");
-    alert("Data received in content script for target: " + target + "\nData:\n" + data);
-    alert(targetTkt);
+    //alert("Data received in content script for target: " + target + "\nData:\n" + data);
+    //alert(targetTkt);
     insertDataIntoFields(rows, target, false, supplierValueLabel, targetTkt);
 }
