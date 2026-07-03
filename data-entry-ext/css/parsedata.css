@@ -301,6 +301,13 @@ textarea.error-output {
     background-color: #fbd8d8 !important;
 }
 
+textarea.warning-output {
+    
+    border: 2px solid #f59e0b;   /* Amber */
+    background-color: #fffbeb;   /* Light amber */
+    color: #1f2937;              /* Dark gray */
+}
+
 .info-text {
     font-size: medium;
     color: #999;

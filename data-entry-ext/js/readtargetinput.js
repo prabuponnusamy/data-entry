@@ -135,7 +135,7 @@ async function getAllFields() {
     }
     if (optionsHtml) {
         var supplierHtml = `
-            <select id="supplier">
+            <select id="supplier" class="medium-input">
                 ${optionsHtml}
             </select>
         `;
@@ -143,8 +143,10 @@ async function getAllFields() {
         // Select websiteBaseUrlSelect value to websiteBaseUrlInput
         document.getElementById('supplier').addEventListener('change', (event) => {
             console.log(event)
+            var options = Array.from(document.getElementById('supplier')).filter(o => o.value == event.target.value)
             const selectedValue = event.target.value;
-            document.getElementById('supplierId').value = selectedValue;
+            console.log(options[0].text);
+            document.getElementById('supplierId').value = options[0].text;
         });
     }
 }

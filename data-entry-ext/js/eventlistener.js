@@ -245,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('websiteBaseUrlSelect').addEventListener('change', (event) => {
         const selectedValue = event.target.value;
         document.getElementById('websiteBaseUrlInput').value = selectedValue;
+        getAllFields();
     });
 });
 
