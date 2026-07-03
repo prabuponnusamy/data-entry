@@ -44,6 +44,7 @@ function generateTable() {
 
         const inputMsg = inputGroups[i] ? inputGroups[i].join('\n') : '';
         const outputMsg = outGroups[i] ? outGroups[i].filter(l => l.trim()).join('\n') : '';
+        
         var match = [];
         outGroups[i] && outGroups[i].forEach(line => {
             var matches = getWinningNumberMatchResult(line);
@@ -53,6 +54,16 @@ function generateTable() {
         });
         outGroups[i] && outGroups[i].forEach(line => { });
         const isFailedParsing = outputMsg.includes(FAILED_TO_PARSE);
+        const isAmountMissing = outGroups[i]
+            ? outGroups[i].some(l => {
+                const splits = l.trim().split(',');
+                return (
+                    splits[0] &&
+                    (splits[0].startsWith('3DTkt') || splits[0].startsWith('4DTkt')) &&
+                    splits[3] === ''
+                );
+            })
+            : false;
         const show = !showFailedParsing || isFailedParsing;
         imagePath = outputMsg.toUpperCase().replace('ATTACHMENT:', '').trim();
         const imageUrl = imageMap.get(imagePath);
@@ -72,7 +83,7 @@ function generateTable() {
                 ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                 <textarea id="original-msg-${i}" name="original-msg" class="original-msg ${match.length > 0 ? 'winning-ticket' : ''}" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea>${imgHtml}</td>
             <td>
-                <textarea id="formatted-msg-${i}" name="formatted-msg" class="formatted-msg ${isFailedParsing ? 'error-output' : ''}" data-error="${isFailedParsing ? 'true' : 'false'}" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea>
+                <textarea id="formatted-msg-${i}" name="formatted-msg" class="formatted-msg ${isFailedParsing ? 'error-output' : (isAmountMissing ? 'warning-output' : '')}" data-error="${isFailedParsing ? 'true' : 'false'}" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea>
             </td>
             </tr>`;
     }

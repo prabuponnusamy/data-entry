@@ -274,14 +274,17 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
 function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt) {
     //alert("No of entries to insert: " + valuesToInsert.length);
     //alert(`Supplier id ${supplierId}, target tkt ${targetTkt}`);
-
+    alert(supplierId + " - " + targetTkt)
     const addButton = document.querySelector(".add_field_button");
     validateDataLength(type, valuesToInsert);
 
     // Select Supplier
     if (supplierId) {
-        const supplierField = document.querySelector('select[name="supplier"]');
-
+        var supplierField = document.querySelector('select[name="supplier"]');
+        if (!supplierField) {
+            alert("Search with supplier id")
+            supplierField = document.querySelector('select[name="supplierID"]');
+        }
         if (supplierField) {
             for (const option of supplierField.options) {
                 //console.log("Supplier:", option.text, supplierId);
@@ -293,6 +296,8 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
                     break;
                 }
             }
+        } else {
+            alert("Supplier field not found")
         }
     }
 
@@ -301,8 +306,8 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
         // Example: 3DTkt70 -> 3D_70
         const targetTktOpt = targetTkt
             .toUpperCase()
-            .replace("TKT", "_");
-
+            .replace("TKT", "-");
+        alert("converted target tkt value " + targetTktOpt);
         const rateField = document.getElementById("rate");
 
         if (rateField) {
@@ -311,7 +316,7 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
             for (const option of rateField.options) {
                 console.log("Ticket:", option.value, targetTktOpt);
 
-                if (option.value.toUpperCase().startsWith(targetTktOpt)) {
+                if (option.text.toUpperCase().startsWith(targetTktOpt)) {
                     rateField.value = option.value;
                     rateField.dispatchEvent(new Event("change", { bubbles: true }));
                     console.log("Ticket selected:", option.value);
