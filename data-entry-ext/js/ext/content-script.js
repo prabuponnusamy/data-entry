@@ -274,7 +274,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
 function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt) {
     //alert("No of entries to insert: " + valuesToInsert.length);
     //alert(`Supplier id ${supplierId}, target tkt ${targetTkt}`);
-    alert(supplierId + " - " + targetTkt)
+    //alert(supplierId + " - " + targetTkt)
     const addButton = document.querySelector(".add_field_button");
     validateDataLength(type, valuesToInsert);
 
@@ -282,7 +282,7 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
     if (supplierId) {
         var supplierField = document.querySelector('select[name="supplier"]');
         if (!supplierField) {
-            alert("Search with supplier id")
+            //alert("Search with supplier id")
             supplierField = document.querySelector('select[name="supplierID"]');
         }
         if (supplierField) {
@@ -307,7 +307,6 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
         const targetTktOpt = targetTkt
             .toUpperCase()
             .replace("TKT", "-");
-        alert("converted target tkt value " + targetTktOpt);
         const rateField = document.getElementById("rate");
 
         if (rateField) {
