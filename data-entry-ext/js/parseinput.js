@@ -32,6 +32,37 @@ function getMessageGroups() {
     return messageGroup;
 }
 
+// Combines raw target tokens (e.g. "AB", "AC", "BC", "A", "ALL", already-hyphenated
+// composites like "AB-AC") collected from one or more lines into a single target value,
+// collapsing AB+AC+BC (or A+B+C) into ALL regardless of how many lines they came from.
+function combineTargetTokens(rawTargets) {
+    var all = [];
+    (rawTargets || []).forEach(t => {
+        if (!t) return;
+        t.split('-').forEach(part => {
+            if (part) all.push(part);
+        });
+    });
+    if (all.length === 0) return '';
+    var uniqueTokens = [...new Set(all)];
+    if (uniqueTokens.includes('ALL') && uniqueTokens.length > 1) {
+        const index = uniqueTokens.indexOf('ALL');
+        if (index > -1) {
+            uniqueTokens.splice(index, 1);
+        }
+    }
+    uniqueTokens.sort();
+    var combined = uniqueTokens.join('-');
+    if (combined === 'AB-AC-BC' || combined === 'A-B-C' || combined === 'ABC') {
+        combined = 'ALL';
+    } else {
+        combined = combined.replace("ABAC", "AB-AC");
+        combined = combined.replace("ABBC", "AB-BC");
+        combined = combined.replace("ACBC", "AC-BC");
+    }
+    return combined;
+}
+
 function cleanupLine(line) {
     // replace all non a-z and A-Z and 0-9 which is prefix and suffix with empty string
     if (!line || line === '') return line;
@@ -57,7 +88,11 @@ function parseMessages() {
     groups.forEach((msg, index) => {
         lines = [];
         replace = {};
-        msg.forEach((line, index) => {
+        // Join the message back into text so AB/AC/BC spread across separate lines -
+        // in any order, with or without a space between them - can be recognized and
+        // collapsed into a single ALL token before the message is split line by line.
+        var joinedMsg = collapseAbAcBcToAll(msg.join('\n'));
+        joinedMsg.split('\n').forEach((line) => {
             if (line === '') return;
             line = plainTextNormalize(line);
             line.split('\n').map(l => l.trim()).forEach(l => {
@@ -178,23 +213,7 @@ function parseMessages() {
                     line = line.replace(new RegExp('\\b' + token + '\\b', 'g'), '').trim();
                 });
 
-                if (uniqueTokens.includes('ALL') && uniqueTokens.length > 1) {
-                    // If ALL is present along with other tokens, remove ALL
-                    const index = uniqueTokens.indexOf('ALL');
-                    if (index > -1) {
-                        uniqueTokens.splice(index, 1);
-                    }
-                }
-                uniqueTokens.sort();
-                const joinedTokens = uniqueTokens.join('-');
-                targetVal = joinedTokens;
-                if (joinedTokens === 'AB-AC-BC' || joinedTokens === 'A-B-C' || joinedTokens === 'ABC') {
-                    targetVal = 'ALL';
-                } else {
-                    targetVal = targetVal.replace("ABAC", "AB-AC");
-                    targetVal = targetVal.replace("ABBC", "AB-BC");
-                    targetVal = targetVal.replace("ACBC", "AC-BC");
-                }
+                targetVal = combineTargetTokens(uniqueTokens);
                 cleanedMsg['target'] = targetVal;
                 if (line == '' && targetVal != '') {
                     lastTarget = targetVal;
@@ -418,7 +437,8 @@ function parseMessages() {
         //cleanedUpGrouped.push(cleanedUpGroupedLines);
         var outLines = [];
         cleanedUpGroupedLines.forEach((subgroup, sgIndex) => {
-            var qty, isBox, isCut, isOff, amt, targetValue, attachment, nparsed;
+            var qty, isBox, isCut, isOff, amt, attachment, nparsed;
+            var targetTokens = [];
             if (subgroup['beforeData'] && subgroup['beforeData'].length > 0) {
                 subgroup['beforeData'].forEach(line => {
                     if (line['qty'] && line['qty'] != '') {
@@ -432,7 +452,7 @@ function parseMessages() {
                     } if (line['amount']) {
                         amt = line['amount'];
                     } if (line['target']) {
-                        targetValue = line['target'];
+                        targetTokens.push(line['target']);
                     }
                     if (line['image']) {
                         attachment = line['image'];
@@ -455,7 +475,7 @@ function parseMessages() {
                     } if (line['amount']) {
                         amt = line['amount'];
                     } if (line['target']) {
-                        targetValue = line['target'];
+                        targetTokens.push(line['target']);
                     }
                     if (line['image']) {
                         attachment = line['image'];
@@ -465,6 +485,10 @@ function parseMessages() {
                     }
                 });
             }
+            // Combine target tokens from every before/after-data line in this subgroup
+            // (not just the last one) so e.g. "AB" then "AC" on separate lines still
+            // becomes "AB-AC" instead of the later line silently winning.
+            var targetValue = combineTargetTokens(targetTokens);
             if (attachment && attachment != '') {
                 outLines.push(`attachment:${attachment}`);
                 return;
