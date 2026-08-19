@@ -136,6 +136,18 @@ function splitTextAndNumbers(line) {
     return cleanedLine.replace(/\s+/g, ' ').trim();
 }
 
+// Detects AB / AC / BC appearing together - in any of the 6 possible orders, with or
+// without whitespace (including newlines) between them - and collapses the trio into a
+// single ALL token, since betting all three 2D combinations is the same as betting ALL.
+function collapseAbAcBcToAll(text) {
+    if (!text) return text;
+    const tripletRegex = /\b(?:AB|AC|BC)\s*(?:AB|AC|BC)\s*(?:AB|AC|BC)\b/gi;
+    return text.replace(tripletRegex, (match) => {
+        const parts = match.toUpperCase().match(/AB|AC|BC/g) || [];
+        return new Set(parts).size === 3 ? ' ALL ' : match;
+    });
+}
+
 function replaceUnwantedChars(line) {
 
     // If line contains only date like 
@@ -145,6 +157,8 @@ function replaceUnwantedChars(line) {
     line = line.replace(/₹/ig, 'RS');
     line = line.replace(/\$/ig, 'RS');
     line = line.replace(/ரூ./ig, 'RS');
+    line = line.replace(/Rupees/ig, 'RS');
+    line = line.replace(/Rupee/ig, 'RS');
     line = line.replace(/\d{2}-\d{2}-\d{4}/, '').trim();
     line = line.replace('KL', '').trim();
     line = line.replace(/\d+[^a-zA-Z0-9]*DIGIT/g, '').trim();
@@ -184,7 +198,7 @@ function replaceUnwantedChars(line) {
     line = line.replace(/₹/g, 'RS');
     line = line.replaceAll('CHANCE', 'SET');
 
-    line = line.replace("ABBCAC", " ALL "); // replace multiple spaces with single space
+    line = collapseAbAcBcToAll(line); // AB/AC/BC in any order, with or without spaces -> ALL
     line = line.replaceAll('ECH', ' EACH '); // replace multiple spaces with single space
     line = line.replace('ALL', ' ALL '); // add space before ALL to avoid partial match
     line = line.replace('R.S', 'RS');
