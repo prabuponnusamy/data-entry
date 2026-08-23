@@ -145,6 +145,7 @@ function replaceUnwantedChars(line) {
     line = line.replace(/₹/ig, 'RS');
     line = line.replace(/\$/ig, 'RS');
     line = line.replace(/ரூ./ig, 'RS');
+    line = line.replace(/rupees/ig, 'RS');
     line = line.replace(/\d{2}-\d{2}-\d{4}/, '').trim();
     line = line.replace('KL', '').trim();
     line = line.replace(/\d+[^a-zA-Z0-9]*DIGIT/g, '').trim();
