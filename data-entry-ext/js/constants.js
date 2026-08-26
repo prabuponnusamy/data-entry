@@ -2,6 +2,9 @@
 const FAILED_TO_PARSE = 'FAILED TO PARSE';
 
 const INPUT_FIELD_ID = 'inputData';
+const DELETE_TEXT_FIELD_ID = 'deleteText';
+const REPLACE_TEXT_FIELD_ID = 'replaceText';
+const ZIP_FILE_NAME_FIELD_ID = 'zipFileName';
 
 //1DCut 1DTkt 2DCut 2DTkt  3DBox 3DCut 3DTkt 4DBox 4DCut 4DTkt 5DBox 5DCut 5DTkt
 const TARGET_1D_TKT = '1DTkt';
@@ -27,6 +30,8 @@ const dict = {
     st: "SET",
     chance: "SET",
     seat: "SET",
+    time: "SET",
+    times: "SET",
     bored: "BOARD"
 };
 // replace board ''
@@ -64,7 +69,12 @@ const replacements = [
     "DEAR-8",
     "DEAR 8",
     "DEAR8",
+    "DEAR*8",
+    "8 PM   DEAR",
+    "DR 8 PM",
+    "DEAR 8.00",
     "DEAR-1-00PM",
+    "DEAR -8",
     "DEAR----1",
     "DEAR----2",
     "DEAR----3",
@@ -104,4 +114,4 @@ const replacements = [
     "PM",
     "BORED",
     "BORD"
-].sort((a, b) => b.length - a.length);
+].map((s) => s.toUpperCase()).sort((a, b) => b.length - a.length);

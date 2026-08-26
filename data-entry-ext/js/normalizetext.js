@@ -159,7 +159,6 @@ function replaceUnwantedChars(line) {
     line = line.replace(/\bSR\b/g, 'SET');
     line = line.replace(/\bSR\b/g, 'SET');
     line = line.replace(/\bEA\b/g, 'EACH');
-
     line = line.replace(/\bECH\b/gi, 'EACH');
     // line = line.replace(/(\d{1,2}\s*(?:[.:]\d{2})?(?:[.:])?\s*(?:AM|PM))/i, '').trim();
 
@@ -191,5 +190,14 @@ function replaceUnwantedChars(line) {
     line = line.replace('R.S', 'RS');
     line = line.replace(/^\((\d+(?:\.\d+)?)\)$/g, "RS $1");
     line = line.replace(/\bTK\b/g, 'RS');
+
+    line = line.replace('DEAR*8', '');
+    line = line.replace('8 PM   DEAR', '');
+    //Dear 8pm
+    line = line.replace('DEAR 8PM', '');
+    //Dear 8.00
+    line = line.replace('DEAR 8.00', '');
+    //Dear -8
+    line = line.replace('DEAR -8', '');
     return cleanupLine(line);
 }

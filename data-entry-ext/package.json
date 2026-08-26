@@ -1,0 +1,8 @@
+{
+  "name": "data-entry-ext",
+  "private": true,
+  "description": "Chrome extension that parses WhatsApp ticket messages. package.json exists only to run the tests - the extension itself is loaded from manifest.json and has no build step or dependencies.",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

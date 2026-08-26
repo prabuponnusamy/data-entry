@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parse Data - Data Entry Extension</title> <!-- Bootstrap CSS -->
+    <title>Parse Data v3 - Data Entry Extension</title> <!-- Bootstrap CSS -->
     <link href="css/parsedata.css" rel="stylesheet">
 </head>
 
@@ -74,7 +74,8 @@
             <div class="tab-pane active" id="input-tab-pane" role="tabpanel">
                 <div class="row">
                     <div class="col"> <label for="inputData">Input Data <a href="#" class="copy-whatsapp"
-                                data-action="copy-whatsapp" title="Copy">Copy</a></label> <textarea id="inputData"
+                                data-action="copy-whatsapp" title="Copy">Copy</a></label>
+                        <label for="inputData" id="zipFileName" class="zip-file-name"></label> <textarea id="inputData"
                             class="input-textarea" rows="25" placeholder="Paste WhatsApp data here..."></textarea>
                     </div>
                     <div class="col"> <label for="outputData">Output Data</label> <textarea id="outputData"
@@ -134,6 +135,12 @@
                         <label class="normal-label">5D: <input type="text" id="5dWinningNumbers"
                                 class="form-control medium-input" length="5" disabled>
                         </label>
+                        <label for="deleteText">Delete text</label> <textarea id="deleteText"
+                            class="output-area" rows="3"
+                            placeholder="Text to delete each in new line"></textarea>
+                        <label for="replaceText">Replace text</label> <textarea id="replaceText"
+                            class="output-area" rows="3"
+                            placeholder="actVal1=repVal1,actVal2=repVal2"></textarea>
                     </div>
                 </div>
             </div>
@@ -155,11 +162,31 @@
     <script src="js/common.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/english_word_list.js"></script>
+
+    <!-- Modularized parseinput.js (js/v3/) -->
+    <script src="js/v3/state.js"></script>
+    <script src="js/v3/message-groups.js"></script>
+    <script src="js/v3/text-substitution.js"></script>
+    <script src="js/v3/text-cleanup.js"></script>
+    <script src="js/v3/line-image.js"></script>
+    <script src="js/v3/line-word-normalizer.js"></script>
+    <script src="js/v3/line-target.js"></script>
+    <script src="js/v3/line-flags.js"></script>
+    <script src="js/v3/line-amount-qty.js"></script>
+    <script src="js/v3/line-numeric-data.js"></script>
+    <script src="js/v3/line-processor.js"></script>
+    <script src="js/v3/grouping.js"></script>
+    <script src="js/v3/output-builder.js"></script>
+    <script src="js/v3/legacy-output.js"></script>
+    <script src="js/v3/parse-messages.js"></script>
+    <script src="js/v3/process-input.js"></script>
+    <script src="js/v3/winning-numbers.js"></script>
+    <script src="js/v3/ocr-words.js"></script>
+
     <script src="js/eventlistener.js"></script>
     <script src="js/imageparser.js"></script>
     <script src="js/processzipfile.js"></script>
     <script src="js/renderer.js"></script>
-    <script src="js/parseinput.js"></script>
     <script src="js/validatesection.js"></script>
     <script src="js/generateoutput.js"></script>
 </body>

@@ -1,0 +1,66 @@
+# ---- Node / npm ----------------------------------------------------------
+# package.json here only exists to run the tests; nothing installed should ever
+# end up in the extension.
+node_modules/
+.npm/
+.yarn/
+.pnp.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tgz
+
+# ---- Test / coverage output ----------------------------------------------
+coverage/
+.nyc_output/
+test-results/
+*.lcov
+
+# ---- Extension packaging -------------------------------------------------
+# Signing keys are secrets, and packed builds are rebuilt from source.
+*.pem
+*.crx
+web-ext-artifacts/
+dist/
+build/
+out/
+
+# ---- WhatsApp exports & scratch data -------------------------------------
+# Chat exports carry customer data - keep them out of the repo.
+*.zip
+input_data.txt
+
+# ---- Secrets / local config ----------------------------------------------
+.env
+.env.*
+*.key
+secrets.json
+.claude/settings.local.json
+
+# ---- Editors / IDEs ------------------------------------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ---- OS junk -------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---- Logs / temp ---------------------------------------------------------
+*.log
+*.tmp
+*.bak
+*.orig
+tmp/
+temp/

@@ -134,6 +134,22 @@ document.addEventListener('DOMContentLoaded', () => {
         processInput();
     });
 
+    // Show which zip the restored content came from
+    restoreZipFileName();
+
+    // Delete/replace clean-up rules: restore, then persist on every edit and
+    // re-parse once the user leaves the field.
+    [DELETE_TEXT_FIELD_ID, REPLACE_TEXT_FIELD_ID].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.value = localStorage.getItem(fieldId) || '';
+        field.addEventListener('input', () => localStorage.setItem(fieldId, field.value));
+        field.addEventListener('change', () => {
+            localStorage.setItem(fieldId, field.value);
+            processInput();
+        });
+    });
+
     // set default value of inputData textarea from local storage if available
     const savedInputData = localStorage.getItem('inputData');
     if (savedInputData) {

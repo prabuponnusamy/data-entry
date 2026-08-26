@@ -4,6 +4,64 @@ var lastFocusedTextareaIdx = 0;
 // SECTION 4: TABLE GENERATION & UI
 // ============================================================================
 
+// A 3D/4D ticket line that ended up with no amount.
+function isAmountMissingLine(line) {
+    const splits = line.trim().split(',');
+    return !!(splits[0]
+        && (splits[0].startsWith('3DTkt') || splits[0].startsWith('4DTkt'))
+        && splits[3] === '');
+}
+
+// Words that mark a number as a quantity ("2set", "each 20", "20 st").
+const QTY_WORD_PATTERN = '(?:SETS|SET|SAT|SAF|EACH|ECH|ETC|CHANCE|ST|CH|E|S|P|T)';
+
+// Leading zeros are kept in the output ("09") but may be typed either way.
+function unpadNumber(value) {
+    return value.replace(/^0+(?=\d)/, '');
+}
+
+// True when `line` contains both numbers as separate numeric tokens - i.e. the
+// pair was typed together, so the parser had to decide which one is the qty.
+function lineHasBothNumbers(line, number, qty) {
+    const tokens = (line.match(/\d+/g) || []).map(unpadNumber);
+    const index = tokens.indexOf(unpadNumber(number));
+    if (index === -1) {
+        return false;
+    }
+    const remaining = tokens.slice();
+    remaining.splice(index, 1);
+    return remaining.includes(unpadNumber(qty));
+}
+
+// True when the line spells the qty out ("20set", "each 20") - it was read off
+// the text rather than guessed.
+function isQtyStatedOnLine(line, qty) {
+    const qtyAfterWord = new RegExp(QTY_WORD_PATTERN + '[^A-Za-z0-9]*' + qty + '\\b', 'i');
+    const qtyBeforeWord = new RegExp('\\b' + qty + '[^A-Za-z0-9]*' + QTY_WORD_PATTERN + '\\b', 'i');
+    return qtyAfterWord.test(line) || qtyBeforeWord.test(line);
+}
+
+// A number/qty pair of the same digit length ("ALL 14,41" -> 14 qty 41). The
+// parser cannot tell a second ticket number from a quantity here, so it keeps
+// the number+qty reading and the row is flagged for a look.
+//
+// Both values are looked up in the message's own lines: the guess only happened
+// if they were typed on the same line and that line does not name the qty. A
+// qty carried down from its own line ("Each 20set") is not a guess, and neither
+// is the default qty of 1.
+function isQtyGuessedLine(outLine, inputLines) {
+    const splits = outLine.trim().split(',');
+    const number = splits[1];
+    const qty = splits[2];
+    if (!/^\d+$/.test(number) || !/^\d+$/.test(qty)
+        || qty === '1' || number.length !== qty.length) {
+        return false;
+    }
+
+    const sharedLine = inputLines.find(line => lineHasBothNumbers(line, number, qty));
+    return !!sharedLine && !isQtyStatedOnLine(sharedLine, qty);
+}
+
 function generateTable() {
     const inputData = document.getElementById('inputData').value;
     const outputData = document.getElementById('outputData');
@@ -54,16 +112,14 @@ function generateTable() {
         });
         outGroups[i] && outGroups[i].forEach(line => { });
         const isFailedParsing = outputMsg.includes(FAILED_TO_PARSE);
-        const isAmountMissing = outGroups[i]
-            ? outGroups[i].some(l => {
-                const splits = l.trim().split(',');
-                return (
-                    splits[0] &&
-                    (splits[0].startsWith('3DTkt') || splits[0].startsWith('4DTkt')) &&
-                    splits[3] === ''
-                );
-            })
-            : false;
+        const groupOutLines = outGroups[i] || [];
+        const warnings = [];
+        if (groupOutLines.some(isAmountMissingLine)) {
+            warnings.push('Amount missing');
+        }
+        if (groupOutLines.some(l => isQtyGuessedLine(l, inputGroups[i] || []))) {
+            warnings.push('Number and qty are the same length - check which is the qty');
+        }
         const show = !showFailedParsing || isFailedParsing;
         imagePath = outputMsg.toUpperCase().replace('ATTACHMENT:', '').trim();
         const imageUrl = imageMap.get(imagePath);
@@ -83,7 +139,7 @@ function generateTable() {
                 ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                 <textarea id="original-msg-${i}" name="original-msg" class="original-msg ${match.length > 0 ? 'winning-ticket' : ''}" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea>${imgHtml}</td>
             <td>
-                <textarea id="formatted-msg-${i}" name="formatted-msg" class="formatted-msg ${isFailedParsing ? 'error-output' : (isAmountMissing ? 'warning-output' : '')}" data-error="${isFailedParsing ? 'true' : 'false'}" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea>
+                <textarea id="formatted-msg-${i}" name="formatted-msg" class="formatted-msg ${isFailedParsing ? 'error-output' : (warnings.length > 0 ? 'warning-output' : '')}" data-error="${isFailedParsing ? 'true' : 'false'}" title="${warnings.join(' | ')}" rows="${outGroups[i]?.length || 1}">${outputMsg}</textarea>
             </td>
             </tr>`;
     }

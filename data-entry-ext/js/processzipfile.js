@@ -7,12 +7,27 @@
     Read each txt file and place in the inputData textarea
     Extract images and save them to appropriate location based on OS
 */
+// Shows which zip the data in the textareas came from, and remembers it so the
+// name is still there after a reload.
+function setZipFileName(name) {
+    const label = document.getElementById(ZIP_FILE_NAME_FIELD_ID);
+    if (label) {
+        label.textContent = name ? 'Zip file: ' + name : '';
+        label.title = name || '';
+    }
+}
+
+// Restores the name saved by the last processed zip.
+function restoreZipFileName() {
+    setZipFileName(localStorage.getItem(ZIP_FILE_NAME_FIELD_ID) || '');
+}
+
 function parseZipFile(event) {
     imageMap.clear();
     const file = document.getElementById('zipInput').files[0];
-    // Show extension dir name
-    console.log('Selected zip file:', file.name);
     if (file) {
+        // Show extension dir name
+        console.log('Selected zip file:', file.name);
         const reader = new FileReader();
         reader.onload = function (e) {
             const arrayBuffer = e.target.result;
@@ -59,6 +74,9 @@ function parseZipFile(event) {
                     document.getElementById('inputData').value = allTexts.join('\n');
                     // Save the input in the local storage
                     localStorage.setItem('inputData', document.getElementById('inputData').value);
+                    // Keep the zip name alongside the content it produced
+                    localStorage.setItem(ZIP_FILE_NAME_FIELD_ID, file.name);
+                    setZipFileName(file.name);
                     //localStorage.setItem('imageMap', JSON.stringify(Array.from(imageMap.entries())));
                     //localStorage.setItem('visionRequests', JSON.stringify(Array.from(visionRequests.entries())));
                     parseMessages();
