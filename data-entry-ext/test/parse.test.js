@@ -213,3 +213,76 @@ test('each parse starts from clean state', () => {
     parse('ALL\n12');
     assertOutput('34', ['2DTkt,34,1,,']);
 });
+
+test('common amount', async t => {
+    // The shape this exists for: one "Rs. 30" at the top, then a BOX/TKT flip
+    // that starts new groups the amount never reaches.
+    const message = 'Rs. 30\n529\n529=box\n349=box\n943=6\n297=3\n099=box\n076=4';
+
+    // Parses `input` with the Common amount field set to `value` / `mode`.
+    function parseWithCommonAmount(input, value, mode) {
+        const context = loadContext(input);
+        context.elements.commonAmount = { value: value };
+        context.elements.commonAmountMode = { value: mode };
+        context.parseMessages();
+        return context.elements.outputData.value.split('\n').filter(line => line.trim() !== '');
+    }
+
+    await t.test('unset, nothing changes', () => {
+        assertOutput(message, [
+            '3DTkt,529,1,30,',
+            '3DBox,529,1,,',
+            '3DBox,349,1,,',
+            '3DTkt,943,6,,',
+            '3DTkt,297,3,,',
+            '3DBox,099,1,,',
+            '3DTkt,076,4,,'
+        ]);
+    });
+
+    await t.test('fills the entries that ended up without an amount', () => {
+        assert.deepStrictEqual(parseWithCommonAmount(message, '30', 'missing'), [
+            '3DTkt,529,1,30,',
+            '3DBox,529,1,30,',
+            '3DBox,349,1,30,',
+            '3DTkt,943,6,30,',
+            '3DTkt,297,3,30,',
+            '3DBox,099,1,30,',
+            '3DTkt,076,4,30,'
+        ]);
+    });
+
+    await t.test('missing mode leaves an amount the message stated', () => {
+        assert.deepStrictEqual(parseWithCommonAmount('Rs. 60\n529\n349=box', '30', 'missing'), [
+            '3DTkt,529,1,60,',
+            '3DBox,349,1,30,'
+        ]);
+    });
+
+    await t.test('all mode overrides an amount the message stated', () => {
+        assert.deepStrictEqual(parseWithCommonAmount('Rs. 60\n529\n349=box', '30', 'all'), [
+            '3DTkt,529,1,30,',
+            '3DBox,349,1,30,'
+        ]);
+    });
+
+    await t.test('1D/2D rows keep their target and stay amount-free', () => {
+        assert.deepStrictEqual(parseWithCommonAmount('Bc\n09\n89', '30', 'all'), [
+            '2DTkt,09,1,,BC',
+            '2DTkt,89,1,,BC'
+        ]);
+    });
+
+    await t.test('OFF still marks the amount', () => {
+        assert.deepStrictEqual(parseWithCommonAmount('529 off', '30', 'missing'), [
+            '3DTkt,529,1,30 OFF,'
+        ]);
+    });
+
+    await t.test('a non-numeric value is ignored', () => {
+        assert.deepStrictEqual(parseWithCommonAmount('529\n349=box', 'abc', 'all'), [
+            '3DTkt,529,1,,',
+            '3DBox,349,1,,'
+        ]);
+    });
+});

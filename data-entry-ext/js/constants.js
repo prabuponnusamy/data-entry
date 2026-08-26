@@ -5,6 +5,8 @@ const INPUT_FIELD_ID = 'inputData';
 const DELETE_TEXT_FIELD_ID = 'deleteText';
 const REPLACE_TEXT_FIELD_ID = 'replaceText';
 const ZIP_FILE_NAME_FIELD_ID = 'zipFileName';
+const COMMON_AMOUNT_FIELD_ID = 'commonAmount';
+const COMMON_AMOUNT_MODE_FIELD_ID = 'commonAmountMode';
 
 //1DCut 1DTkt 2DCut 2DTkt  3DBox 3DCut 3DTkt 4DBox 4DCut 4DTkt 5DBox 5DCut 5DTkt
 const TARGET_1D_TKT = '1DTkt';

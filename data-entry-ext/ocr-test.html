@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Test Bench - Data Entry Extension</title>
+    <link href="css/ocrtest.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="panel">
+        <h1>OCR test bench (Tesseract.js, runs fully in the browser)</h1>
+        <p class="subtitle">Load ticket images, zoom and re-ink them, then see what the local OCR reads. No API key,
+            no upload - the images never leave this machine.</p>
+    </div>
+
+    <div class="layout">
+        <div>
+            <div class="panel">
+                <h2>Images</h2>
+                <div class="drop-zone" id="dropZone">Drop images or a WhatsApp .zip here, or paste a screenshot</div>
+                <div class="field">
+                    <input type="file" id="fileInput" accept="image/*,.zip" multiple>
+                </div>
+                <div class="toolbar">
+                    <button id="sampleBtn" class="secondary">Sample ticket</button>
+                    <button id="clearBtn" class="secondary">Clear</button>
+                </div>
+                <p class="hint" id="imageCount">No images loaded</p>
+                <div class="thumbs" id="thumbs"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Zoom &amp; marking</h2>
+                <div class="field">
+                    <label for="scale">OCR zoom (scale) <span class="range-value" id="scaleValue">3</span>x</label>
+                    <input type="range" id="scale" min="1" max="6" step="0.5" value="3">
+                    <p class="hint">Small digits read far better zoomed 3-4x. Raised automatically for tiny images.</p>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="minHeight">Min height (px)</label>
+                        <input type="number" id="minHeight" value="800" step="100">
+                    </div>
+                    <div class="field">
+                        <label for="padding">White padding (px)</label>
+                        <input type="number" id="padding" value="24" step="4">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="binarize">Binarize (marking)</label>
+                    <select id="binarize">
+                        <option value="sauvola">Sauvola (local, best for photos)</option>
+                        <option value="otsu">Otsu (global)</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="sauvolaWindow">Sauvola window</label>
+                        <input type="number" id="sauvolaWindow" value="25" step="2">
+                    </div>
+                    <div class="field">
+                        <label for="sauvolaK">Sauvola k</label>
+                        <input type="number" id="sauvolaK" value="0.28" step="0.02">
+                    </div>
+                </div>
+                <div class="check"><input type="checkbox" id="contrast" checked><label for="contrast">Contrast
+                        stretch</label></div>
+                <div class="field">
+                    <label for="contrastClip">Contrast clip</label>
+                    <input type="number" id="contrastClip" value="0.02" step="0.01">
+                </div>
+                <div class="check"><input type="checkbox" id="sharpen" checked><label for="sharpen">Sharpen
+                        strokes</label></div>
+                <div class="field">
+                    <label for="sharpenAmount">Sharpen amount</label>
+                    <input type="number" id="sharpenAmount" value="0.6" step="0.1">
+                </div>
+                <div class="check"><input type="checkbox" id="autoInvert" checked><label for="autoInvert">Auto-invert
+                        light-on-dark</label></div>
+            </div>
+
+            <div class="panel">
+                <h2>Recognition</h2>
+                <div class="field">
+                    <label for="psm">Page segmentation</label>
+                    <select id="psm">
+                        <option value="6">6 - uniform block (default)</option>
+                        <option value="4">4 - single column, variable sizes</option>
+                        <option value="11">11 - sparse text</option>
+                        <option value="7">7 - single line</option>
+                        <option value="13">13 - raw line, no layout</option>
+                        <option value="3">3 - full auto</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="whitelistPreset">Character set</label>
+                    <select id="whitelistPreset">
+                        <option value="numeric">Numbers + separators</option>
+                        <option value="digits">Digits only</option>
+                        <option value="all">Everything</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="whitelist">Whitelist (blank = all)</label>
+                    <input type="text" id="whitelist" value="0123456789.,-/*=xX ">
+                </div>
+                <div class="check"><input type="checkbox" id="autoRetry" checked><label for="autoRetry">Retry at bigger
+                        zoom when confidence is low</label></div>
+                <div class="field">
+                    <label for="minConfidence">Confidence target (%)</label>
+                    <input type="number" id="minConfidence" value="78" step="1">
+                </div>
+                <div class="toolbar">
+                    <button id="resetBtn" class="secondary">Reset settings</button>
+                    <button id="terminateBtn" class="secondary">Reload worker</button>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="panel">
+                <div class="status" id="status">Loading...</div>
+                <div class="toolbar">
+                    <button id="runBtn">Run OCR</button>
+                    <button id="runAllBtn" class="secondary">Run on all images</button>
+                    <button id="previewBtn" class="secondary">Preview processing only</button>
+                    <label class="check" style="margin:0"><input type="checkbox" id="showBoxes" checked> show word
+                        boxes</label>
+                    <label style="margin:0">view zoom <span class="range-value" id="viewZoomValue">1</span>x</label>
+                    <input type="range" id="viewZoom" min="0.25" max="3" step="0.25" value="1" style="width:120px">
+                </div>
+                <div class="stats" id="meta"></div>
+                <div class="canvas-wrap" id="canvasWrap"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Result</h2>
+                <div class="stats" id="stats"></div>
+                <div class="results-grid">
+                    <div>
+                        <label for="outputText">Text (reading order)</label>
+                        <textarea id="outputText" rows="14"></textarea>
+                    </div>
+                    <div>
+                        <label for="columnText">Column order (same grouping the extension uses)</label>
+                        <textarea id="columnText" rows="14"></textarea>
+                    </div>
+                </div>
+                <h2 style="margin-top:12px">Words &amp; confidence</h2>
+                <div class="scroll-box" id="wordTable"></div>
+                <pre id="selftest-result" class="hint"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jszip.min.js"></script>
+    <script src="js/vendor/tesseract/tesseract.min.js"></script>
+    <script src="js/v3/ocr-words.js"></script>
+    <script src="js/ocr/image-preprocess.js"></script>
+    <script src="js/ocr/tesseract-ocr.js"></script>
+    <script src="js/ocr/ocr-test-page.js"></script>
+</body>
+
+</html>

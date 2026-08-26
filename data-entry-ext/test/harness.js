@@ -22,6 +22,7 @@ const SOURCE_FILES = [
     'js/v3/line-target.js',
     'js/v3/line-flags.js',
     'js/v3/line-amount-qty.js',
+    'js/v3/common-amount.js',
     'js/v3/line-numeric-data.js',
     'js/v3/line-processor.js',
     'js/v3/grouping.js',
