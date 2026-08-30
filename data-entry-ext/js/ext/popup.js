@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'sameeraa.com',
         'klpoorna.com',
         'akshayajackpot.com',
+        'goagtime.com',
         'anushuya.com',
         'abidear.com',
         'chandhni.com',
