@@ -137,6 +137,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show which zip the restored content came from
     restoreZipFileName();
 
+    // Remember which OCR engine was picked (local Tesseract by default).
+    const ocrEngineField = document.getElementById(OCR_ENGINE_FIELD_ID);
+    if (ocrEngineField) {
+        ocrEngineField.value = localStorage.getItem(OCR_ENGINE_FIELD_ID) || 'local';
+        ocrEngineField.addEventListener('change', () => {
+            localStorage.setItem(OCR_ENGINE_FIELD_ID, ocrEngineField.value);
+        });
+    }
+
+    // Common amount: restore, persist, and re-parse as soon as it changes -
+    // the value only takes effect through buildOutputLines, so a re-parse is
+    // what makes it visible.
+    [COMMON_AMOUNT_FIELD_ID, COMMON_AMOUNT_MODE_FIELD_ID].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        const saved = localStorage.getItem(fieldId);
+        if (saved !== null) field.value = saved;
+        field.addEventListener('change', () => {
+            localStorage.setItem(fieldId, field.value);
+            processInput();
+        });
+    });
+
     // Delete/replace clean-up rules: restore, then persist on every edit and
     // re-parse once the user leaves the field.
     [DELETE_TEXT_FIELD_ID, REPLACE_TEXT_FIELD_ID].forEach(fieldId => {

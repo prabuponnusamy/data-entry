@@ -1,0 +1,262 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 16px;
+    font-size: 14px;
+}
+
+h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #222;
+}
+
+h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.panel {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+button {
+    background: #0d6efd;
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #6c757d;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 2px;
+}
+
+.field {
+    margin-bottom: 10px;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 6px;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+
+.check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.check input {
+    margin: 0;
+}
+
+.range-value {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.thumbs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.thumb {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    padding: 2px;
+    background: #fafafa;
+    cursor: pointer;
+    flex: 0 0 auto;
+    text-align: center;
+    max-width: 120px;
+}
+
+.thumb.selected {
+    border-color: #0d6efd;
+}
+
+.thumb img {
+    display: block;
+    height: 64px;
+    width: auto;
+    max-width: 112px;
+    object-fit: contain;
+}
+
+.thumb span {
+    display: block;
+    font-size: 10px;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.canvas-wrap {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fafafa;
+    overflow: auto;
+    max-height: 460px;
+}
+
+.canvas-wrap canvas {
+    display: block;
+    image-rendering: pixelated;
+}
+
+.status {
+    font-size: 13px;
+    color: #444;
+    background: #eef4ff;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    min-height: 30px;
+}
+
+.status.error {
+    background: #fdecea;
+    color: #a3221c;
+}
+
+.stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.stats b {
+    color: #222;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+}
+
+table.words {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+table.words th,
+table.words td {
+    border-bottom: 1px solid #eee;
+    padding: 3px 6px;
+    text-align: left;
+}
+
+table.words td.num {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+tr.low-conf {
+    background: #fff4e5;
+}
+
+tr.bad-conf {
+    background: #fdecea;
+}
+
+.scroll-box {
+    max-height: 260px;
+    overflow: auto;
+}
+
+.drop-zone {
+    border: 2px dashed #bbb;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+    color: #777;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.drop-zone.dragover {
+    border-color: #0d6efd;
+    background: #eef4ff;
+    color: #0d6efd;
+}
+
+.hint {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}

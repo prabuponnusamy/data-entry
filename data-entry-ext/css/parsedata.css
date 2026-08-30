@@ -474,3 +474,21 @@ textarea.copied {
         text-shadow: 0 0 8px rgba(217, 119, 6, 0.6), 0 0 18px rgba(255, 200, 0, 0.4);
     }
 }
+/* OCR: engine picker link and the textarea the extracted text lands in */
+.ocr-test-link {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #0d6efd;
+}
+
+.extracted-text {
+    width: 100%;
+    margin-top: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+
+.extract-text-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}

@@ -66,7 +66,8 @@ function buildOutputLines(cleanedUpGroupedLines) {
             if (line['data'] && line['data'].length > 0) {
                 line['data'].forEach(d => {
                     let qtyValueLocal = d['qty'] ? d['qty'] : (qty ? qty : '');
-                    let amtValueLocal = (d['amount'] ? d['amount'] : (amt ? amt : '')) + (isOff || line['isOff'] ? ' OFF' : '');
+                    // applyCommonAmount is a no-op unless the page's Common amount field is set.
+                    let amtValueLocal = applyCommonAmount(d['amount'] ? d['amount'] : (amt ? amt : '')) + (isOff || line['isOff'] ? ' OFF' : '');
                     let targetValueLocal = d['target'] ? d['target'] : (targetValue ? targetValue : '');
                     let finalBoxStatus = isBox || line['isBox'] ? true : false;
                     let finalCutStatus = isCut || line['cut'] ? true : false;

@@ -57,6 +57,11 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
+# ---- Local dev server ----------------------------------------------------
+# scripts/start-server.sh writes these next to the extension.
+.server-*.pid
+.server-*.log
+
 # ---- Logs / temp ---------------------------------------------------------
 *.log
 *.tmp
