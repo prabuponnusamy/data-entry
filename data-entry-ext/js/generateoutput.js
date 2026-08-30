@@ -11,8 +11,21 @@ function renderFinalOutput(messageGroup, message, hasError) {
     //console.log('Found image URL:', imageUrl);
 
     // Build image HTML with fallback if image not found
+    const isImageTitle = message.toUpperCase().includes('ATTACHMENT:');
     const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${message}" style="max-width: 200px; margin-top: 10px;">` : `<div style="color: #999; padding: 10px; background: #f5f5f5; border-radius: 4px; max-width: 200px; margin-top: 10px;">Image not found</div>`;
-    var table = `<h3>${message}</h3>${imgHtml}<table>
+    // Each image and the blocks read from it are one section, so a group can be
+    // filled on its own — the same separator the output is already laid out by.
+    var table = '';
+    if (isImageTitle) {
+        table += `<section class="output-section"><h3>${message}</h3>${imgHtml}
+        </section>
+        `;
+    }
+    table += `<section class="output-section">
+            <div class="margin-top-small">
+                ${hasError ? '' : `<button class="btn btn-primary btn-sm" data-action="fill-group">Fill this group</button>`}
+            </div>
+            <table>
             <tbody><tr>`;
     var idx = 0;
     var allowedListSize = 40;
@@ -58,7 +71,7 @@ function renderFinalOutput(messageGroup, message, hasError) {
                 }
             });
             // create new text area dont show buttons if has error 
-            table += `<td>
+            table += `<td width="16.66%">
                     <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
                     ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                     <div>
@@ -69,7 +82,10 @@ function renderFinalOutput(messageGroup, message, hasError) {
                     </td>`;
         });
     });
-    table += `</tr></tbody></table>`;
+    for (var i = idx; i % 6 !== 0; i++) {
+        table += `<td width="16.66%"></td>`;
+    }
+    table += `</tr></tbody></table></section>`;
     // Append to finalOutputContent div
     document.getElementById('finalOutputContent').innerHTML += table;
 }

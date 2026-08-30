@@ -58,6 +58,7 @@ function extractAmount(line, cleanedMsg, rawLine) {
     for (const pattern of amountPatterns) {
         const match = line.match(pattern);
         if (!match) continue;
+        if (match[1].trim() === '' || match[1].trim() === '0') continue;  // Ignore empty matches, e.g. "RS  "
         cleanedMsg['amount'] = match[1];
         // Re-normalize: removing a match from the middle leaves a gap that
         // would otherwise split the remaining numbers apart.

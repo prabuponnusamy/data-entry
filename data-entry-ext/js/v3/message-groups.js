@@ -17,22 +17,48 @@ function mergeAbAcBcLines(message) {
         // Collect the run of distinct target-only lines starting at i
         var runTokens = [];
         var end = i;
+        var headerPrefix = '';
         while (end < message.length) {
-            const trimmedUc = message[end].trim().toUpperCase();
+            const parts = splitOffHeader(message[end]);
+            const trimmedUc = parts.body.trim().toUpperCase();
             if (!targetTokens.includes(trimmedUc) || runTokens.includes(trimmedUc)) {
                 break;
+            }
+            // Only the line that opens the run can carry one, and it has to be
+            // put back on the merged line.
+            if (end === i) {
+                headerPrefix = parts.header;
             }
             runTokens.push(trimmedUc);
             end++;
         }
         if (runTokens.length >= 2) {
-            mergedMessage.push(runTokens.length === 3 ? 'ALL' : runTokens.slice().sort().join('-'));
+            const merged = runTokens.length === 3 ? 'ALL' : runTokens.slice().sort().join('-');
+            mergedMessage.push(headerPrefix ? headerPrefix + ' ' + merged : merged);
             i = end - 1;
         } else {
             mergedMessage.push(message[i]);
         }
     }
     return mergedMessage;
+}
+
+/**
+ * Splits an export line into its WhatsApp header and the message text after
+ * it, or returns the whole line as the text when there is no header.
+ *
+ * The export writes the first line of a message on the same line as its
+ * timestamp and sender, so a message that opens with a target reads as
+ * '29/08/26, 12:36 pm - +91 ...: AB'. Without taking the header off, that line
+ * is not a target-only line and drops out of the run below it - 'AB / BC / AC'
+ * merges as AC-BC and the AB is lost. splitTargetSegments already skips the
+ * header the same way.
+ */
+function splitOffHeader(line) {
+    const headerMatch = line.match(headerLineMatchRegex);
+    return headerMatch
+        ? { header: line.slice(0, headerMatch[0].length), body: line.slice(headerMatch[0].length) }
+        : { header: '', body: line };
 }
 
 /**

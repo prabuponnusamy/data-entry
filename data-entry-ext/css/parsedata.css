@@ -105,7 +105,7 @@ label.normal-label {
 textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #a69f9f;
     font-size: medium;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
@@ -428,6 +428,14 @@ textarea.copied {
 .tab-pane {
     display: none;
     padding-top: 16px;
+}
+
+.output-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 2px solid #81c784;
+    border-radius: 4px;
+    
 }
 
 .tab-pane.active {

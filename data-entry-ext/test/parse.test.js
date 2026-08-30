@@ -167,6 +167,23 @@ test('AB/AC/BC on their own lines merge into one target', async t => {
     await t.test('a single target line is untouched', () => {
         assert.deepStrictEqual(mergeLines(['AB', '100']), ['AB', '100']);
     });
+
+    await t.test('a run that opens on the header line still merges', () => {
+        // The export writes the first line of a message on the same line as
+        // its timestamp and sender, so the AB below is not a target-only line
+        // until the header is taken off. Without that it dropped out of the
+        // run and the message read as AC-BC.
+        assertOutput('29/08/26, 12:36 pm - +91 96293 68942: AB\nBC\nAC\n22', [
+            '2DTkt,22,1,,ALL'
+        ]);
+    });
+
+    await t.test('the header survives the merge', () => {
+        assert.deepStrictEqual(
+            mergeLines(['12/01/25, 10:00 AM - X: AB', 'AC', '100']),
+            ['12/01/25, 10:00 AM - X: AB-AC', '100']
+        );
+    });
 });
 
 test('number length picks the ticket type', async t => {
