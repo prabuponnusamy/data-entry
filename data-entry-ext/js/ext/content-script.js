@@ -271,7 +271,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
     }
 }
 
-function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt) {
+function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt, autoSubmit) {
     //alert("No of entries to insert: " + valuesToInsert.length);
     //alert(`Supplier id ${supplierId}, target tkt ${targetTkt}`);
     //alert(supplierId + " - " + targetTkt)
@@ -458,6 +458,19 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
             setLastValue(abcdeFieldName, num);
             setLastValue(abcdeQtyFieldName, qty);
         });
+    }
+
+    // wait for 1 second before auto submit
+    if (autoSubmit) {
+        setTimeout(() => {
+            const submitButton = document.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.click();
+                //alert("Auto submit is enabled. Please click the submit button manually.");
+            } else {
+                console.warn("Submit button not found");
+            }
+        }, 1000);
     }
 
 }

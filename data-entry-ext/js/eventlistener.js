@@ -50,13 +50,38 @@ function openNewTabWithData(actionEl) {
 
     var data = copyTextarea(actionEl);
     var supplierValueLabel = document.getElementById("supplierId")?.value;
+    var autoSubmit = document.getElementById("autoSubmitCheckbox")?.checked;
+    var debugMode = document.getElementById("debugModeCheckbox")?.checked;
+
+    console.log("Data to fill:\n" + data + "\n\nSupplier: " + supplierValueLabel + "\n\nURL: " + url + "\n\nTarget: " + target + "\n\nTarget Tkt: " + targetkey + "\n\nAuto Submit: " + autoSubmit);
+    if(debugMode) {
+        confirmation = confirm("Do you want to proceed with filling the data?");
+        if (!confirmation) {
+            alert("Data filling cancelled by user.");
+            return;
+        }
+    }
+    
+    if (!data || data.trim() === '') {
+        alert('No data to fill. Please enter some data to fill.');
+        return;
+    }
+    if (!supplierValueLabel || supplierValueLabel.trim() === '') {
+        alert('Please select a supplier before filling the data.');
+        return;
+    }
+    if (!url) {
+        alert('Please enter the website base URL. Eg https://abidear.com/employee');
+        return;
+    }
     chrome.runtime.sendMessage({
         action: "openAndFill",
         payload: data,
         url: url,
         target: target,
         supplierValueLabel: supplierValueLabel,
-        targetTkt: targetkey
+        targetTkt: targetkey,
+        autoSubmit: autoSubmit
     });
 }
 
@@ -262,6 +287,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedValue = event.target.value;
         document.getElementById('websiteBaseUrlInput').value = selectedValue;
         getAllFields();
+    });
+
+    // Store autoSubmitCheckbox value in local storage
+    document.getElementById('autoSubmitCheckbox').addEventListener('change', (event) => {
+        const autoSubmitValue = event.target.checked;
+        localStorage.setItem('autoSubmitCheckbox', autoSubmitValue);
+    });
+    // Set autoSubmitCheckbox value from local storage on page load
+    const autoSubmitValue = localStorage.getItem('autoSubmitCheckbox');
+    if (autoSubmitValue !== null) {
+        document.getElementById('autoSubmitCheckbox').checked = (autoSubmitValue === 'true');
+    }
+
+    // Store debugModeCheckbox value in local storage
+    document.getElementById('debugModeCheckbox').addEventListener('change', (event) => {
+        const debugModeValue = event.target.checked;
+        localStorage.setItem('debugModeCheckbox', debugModeValue);
     });
 });
 
