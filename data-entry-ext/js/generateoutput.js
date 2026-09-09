@@ -1,23 +1,23 @@
 
-function renderFinalOutput(messageGroup, message, hasError) {
+function renderFinalOutput(messageGroup, label, hasError) {
     // wait for 100 ms to render the table one by one
     // Read keys from messageGroup and generate final output - sort keys first
     const sortedKeys = Object.keys(messageGroup).sort();
     // Create table and insert textarea into table column - print lines of table
-    imagePath = message.toUpperCase().replace('ATTACHMENT:', '').trim();
+    imagePath = label.toUpperCase().replace('ATTACHMENT:', '').trim();
     const imageUrl = imageMap.get(imagePath);
     //console.log('Looking for image with key:', imagePath);
     //console.log('Available images in map:', Array.from(imageMap.keys()));
     //console.log('Found image URL:', imageUrl);
 
     // Build image HTML with fallback if image not found
-    const isImageTitle = message.toUpperCase().includes('ATTACHMENT:');
-    const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${message}" style="max-width: 200px; margin-top: 10px;">` : `<div style="color: #999; padding: 10px; background: #f5f5f5; border-radius: 4px; max-width: 200px; margin-top: 10px;">Image not found</div>`;
+    const isImageTitle = label.toUpperCase().includes('ATTACHMENT:');
+    const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" style="max-width: 200px; margin-top: 10px;">` : `<div style="color: #999; padding: 10px; background: #f5f5f5; border-radius: 4px; max-width: 200px; margin-top: 10px;">Image not found</div>`;
     // Each image and the blocks read from it are one section, so a group can be
     // filled on its own — the same separator the output is already laid out by.
     var table = '';
     if (isImageTitle) {
-        table += `<section class="output-section"><h3>${message}</h3>${imgHtml}
+        table += `<section class="output-section"><h3>${label}</h3>${imgHtml}
         </section>
         `;
     }
@@ -71,7 +71,8 @@ function renderFinalOutput(messageGroup, message, hasError) {
                 }
             });
             // create new text area dont show buttons if has error 
-            table += `<td width="16.66%">
+            table += `
+                <td width="19%">
                     <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
                     ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                     <div>
@@ -79,15 +80,33 @@ function renderFinalOutput(messageGroup, message, hasError) {
                         <button class="copy-btn" data-action="copy" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button>`}
                         <textarea name="formatted-output" class="output-textarea" placeholder="Formatted output..." rows="20">${sublist.join('\n')}</textarea>
                     </div>
-                    </td>`;
+                </td>
+                `;
         });
     });
     for (var i = idx; i % 6 !== 0; i++) {
-        table += `<td width="16.66%"></td>`;
+        table += `<td width="19%"></td>`;
     }
     table += `</tr></tbody></table></section>`;
     // Append to finalOutputContent div
     document.getElementById('finalOutputContent').innerHTML += table;
+}
+
+
+/**
+ * "Fill this group" — every block shown under one image, queued in one run.
+ *
+ * The section the button sits in is the group: renderFinalOutput writes one
+ * section per image, so scoping the collection to it takes that image's blocks
+ * and leaves the rest of the page alone.
+ */
+function fillGroup(actionEl) {
+    const section = actionEl.closest('.output-section');
+    if (!section) {
+        alert('Could not work out which group this button belongs to.');
+        return;
+    }
+    fillAllBlocks(section);
 }
 
 

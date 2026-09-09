@@ -10,43 +10,43 @@ function copyTextWithNewLine(txt) {
     navigator.clipboard.writeText('\n' + txt.trim() + '\n');
 }
 
+// Ticket type -> the page on the site that files it. Also the list of targets
+// that can be filled at all: anything not named here has nowhere to go.
+const FILL_URL_SUFFIX = {
+    [TARGET_1D_TKT]: '1dticket', [TARGET_2D_TKT]: '2dticket', [TARGET_3D_TKT]: '3dticket', [TARGET_4D_TKT]: '4dticket', [TARGET_5D_TKT]: '5dticket',
+    [TARGET_3D_BOX]: '3dbox', [TARGET_4D_BOX]: '4dbox'
+};
+
+/**
+ * The base URL and the ticket type's page, joined with exactly one slash.
+ * Empty when either half is missing, which is what the callers check.
+ */
+function buildFillUrl(target) {
+    const base = (document.getElementById('websiteBaseUrlInput')?.value || '').trim();
+    const suffix = FILL_URL_SUFFIX[target];
+    if (!base || !suffix) return '';
+    return base.replace(/\/+$/, '') + '/' + suffix;
+}
+
+/** Reads a checkbox that may not be on the page; `fallback` is used when it is not. */
+function isChecked(id, fallback) {
+    const el = document.getElementById(id);
+    return el ? el.checked === true : fallback === true;
+}
+
 function openNewTabWithData(actionEl) {
     //alert("Opening new tab with target: " + target + " and data:\n" + data);
-    websiteBaseUrl = document.getElementById('websiteBaseUrlInput').value;
     target = actionEl.dataset.target;
     targetkey = actionEl.dataset.targetkey
-    if (websiteBaseUrl == '') {
-        alert('Please enter the website base URL. Eg https://abidear.com/employee');
-        return
-    }
-    var allowedTktTargets = [TARGET_1D_TKT, TARGET_2D_TKT, TARGET_3D_TKT, TARGET_3D_BOX, TARGET_4D_TKT, TARGET_4D_BOX, TARGET_5D_TKT];
-    if (!allowedTktTargets.includes(target)) {
+    if (!FILL_URL_SUFFIX[target]) {
         alert('Unknown target: ' + target);
         return;
     }
-    urlSuffix = {
-        [TARGET_1D_TKT]: '1dticket', [TARGET_2D_TKT]: '2dticket', [TARGET_3D_TKT]: '3dticket', [TARGET_4D_TKT]: '4dticket', [TARGET_5D_TKT]: '5dticket',
-            [TARGET_3D_BOX]: '3dbox', [TARGET_4D_BOX]: '4dbox'
-    };
-    urlMap = {
-        'na': {
-            [TARGET_1D_TKT]: '/order/1dticket', [TARGET_2D_TKT]: '/order/2dticket', [TARGET_3D_TKT]: '/order/3dticket', [TARGET_4D_TKT]: '/order/4dticket', [TARGET_5D_TKT]: '/order/5dticket',
-            [TARGET_3D_BOX]: '/order/3dbox', [TARGET_4D_BOX]: '/order/4dbox'
-        },
-        'one': {
-            [TARGET_1D_TKT]: '/drawOne/1dticket', [TARGET_2D_TKT]: '/drawOne/2dticket', [TARGET_3D_TKT]: '/drawOne/3dticket', [TARGET_4D_TKT]: '/drawOne/4dticket',
-            [TARGET_3D_BOX]: '/drawOne/3dbox', [TARGET_4D_BOX]: '/drawOne/4dbox'
-        },
-        'two': {
-            [TARGET_1D_TKT]: '/drawTwo/1dticket', [TARGET_2D_TKT]: '/drawTwo/2dticket', [TARGET_3D_TKT]: '/drawTwo/3dticket', [TARGET_4D_TKT]: '/drawTwo/4dticket',
-            [TARGET_3D_BOX]: '/drawTwo/3dbox', [TARGET_4D_BOX]: '/drawTwo/4dbox'
-        },
-        'three': {
-            [TARGET_1D_TKT]: '/drawThree/1dticket', [TARGET_2D_TKT]: '/drawThree/2dticket', [TARGET_3D_TKT]: '/drawThree/3dticket', [TARGET_4D_TKT]: '/drawThree/4dticket',
-            [TARGET_3D_BOX]: '/drawThree/3dbox', [TARGET_4D_BOX]: '/drawThree/4dbox'
-        }
+    const url = buildFillUrl(target);
+    if (!url) {
+        alert('Please enter the website base URL. Eg https://abidear.com/employee');
+        return
     }
-    const url = websiteBaseUrl+ (websiteBaseUrl.substring(websiteBaseUrl.length - 1) === '/' || urlSuffix[target].startsWith('/') ? '' : '/') + (urlSuffix[target] || '');
 
     var data = copyTextarea(actionEl);
     var supplierValueLabel = document.getElementById("supplierId")?.value;
@@ -70,10 +70,6 @@ function openNewTabWithData(actionEl) {
         alert('Please select a supplier before filling the data.');
         return;
     }
-    if (!url) {
-        alert('Please enter the website base URL. Eg https://abidear.com/employee');
-        return;
-    }
     chrome.runtime.sendMessage({
         action: "openAndFill",
         payload: data,
@@ -86,6 +82,141 @@ function openNewTabWithData(actionEl) {
 }
 
 
+
+/**
+ * Say whether the picked site still has a session, next to the site itself.
+ *
+ * The worker owns the check, so the page and a run agree on what "signed in"
+ * means. A run refuses to start on a dead session; showing it here means that
+ * is known when the site is picked, not after the data is ready to file.
+ */
+function reportSignInStatus() {
+    const status = document.getElementById('signInStatus');
+    if (!status) return;
+
+    const url = buildFillUrl(TARGET_3D_TKT);
+    if (!url) {
+        status.textContent = '';
+        status.className = 'sign-in-status';
+        return;
+    }
+
+    status.textContent = 'Checking sign-in…';
+    status.className = 'sign-in-status checking';
+    chrome.runtime.sendMessage({ action: 'checkSignIn', url: url }, (response) => {
+        if (chrome.runtime.lastError || !response) {
+            status.textContent = '';
+            status.className = 'sign-in-status';
+            return;
+        }
+        status.textContent = response.signedIn ? '✓ Signed in' : '✗ Not signed in — log in first';
+        status.className = 'sign-in-status ' + (response.signedIn ? 'ok' : 'bad');
+    });
+}
+
+/**
+ * Every block that still has data in it, as the queue wants them: page-wide, or
+ * under `scope` when one group is being filled. DOM order is run order.
+ *
+ * A block is a Fill button and the textarea beside it, which is what
+ * renderFinalOutput writes; emptying a textarea is how a block is taken out of
+ * the run.
+ */
+function collectFillBlocks(scope) {
+    const buttons = (scope || document).querySelectorAll('[data-action="fill"]');
+    const blocks = [];
+    Array.from(buttons).forEach(button => {
+        const textarea = button.parentElement.querySelector('textarea');
+        const text = textarea ? textarea.value.trim() : '';
+        if (!text) return;
+        blocks.push({
+            target: button.dataset.target,
+            targetTkt: button.dataset.targetkey,
+            url: buildFillUrl(button.dataset.target),
+            text: text
+        });
+    });
+    return blocks;
+}
+
+/** What the confirm shows: the amount each group is priced at, not just a count. */
+function fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun) {
+    const rows = blocks.reduce((sum, block) => sum + block.text.split('\n').length, 0);
+    const lines = [
+        `Fill ${blocks.length} block(s), ${rows} row(s)?`,
+        ''
+    ];
+    blocks.forEach(block => {
+        lines.push(`${block.targetTkt} — ${block.text.split('\n').length} row(s)`);
+    });
+    lines.push('');
+    lines.push(`Supplier: ${supplierValueLabel}`);
+    if (dryRun) {
+        lines.push('DRY RUN — nothing will be submitted.');
+    } else if (autoSubmit) {
+        lines.push('AUTO-SUBMIT IS ON — each page is saved once its boxes check out.');
+    }
+    return lines.join('\n');
+}
+
+/**
+ * Hand the whole run to the service worker in one message. The worker owns the
+ * tab from here: the page it opens works through the blocks one page load at a
+ * time, so nothing further is needed from this page.
+ */
+function fillAllBlocks(scope) {
+    const base = (document.getElementById('websiteBaseUrlInput')?.value || '').trim();
+    if (!base) {
+        alert('Please enter the website base URL. Eg https://abidear.com/employee');
+        return;
+    }
+
+    const blocks = collectFillBlocks(scope);
+    if (blocks.length === 0) {
+        alert('Nothing to fill — there are no blocks with data here.');
+        return;
+    }
+
+    const unknown = blocks.filter(block => !block.url).map(block => block.target);
+    if (unknown.length > 0) {
+        alert('Unknown target: ' + [...new Set(unknown)].join(', '));
+        return;
+    }
+
+    const supplierValueLabel = document.getElementById('supplierId')?.value;
+    if (!supplierValueLabel || supplierValueLabel.trim() === '') {
+        alert('Please select a supplier before filling the data.');
+        return;
+    }
+
+    const autoSubmit = isChecked('autoSubmitCheckbox');
+    const dryRun = isChecked('dryRunCheckbox');
+    const showFillBanner = isChecked('fillBannerCheckbox', true);
+
+    console.log('Blocks to fill:', blocks, 'Supplier:', supplierValueLabel, 'Auto Submit:', autoSubmit);
+
+    // Debug mode is the ask-first switch for a single Fill; a run of blocks
+    // reads the same way, with what is about to be filed spelled out.
+    if (isChecked('debugModeCheckbox') &&
+        !confirm(fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun))) {
+        return;
+    }
+
+    chrome.runtime.sendMessage({
+        action: 'fillAll',
+        blocks: blocks,
+        supplierValueLabel: supplierValueLabel,
+        autoSubmit: autoSubmit,
+        dryRun: dryRun,
+        showFillBanner: showFillBanner
+    }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.warn('[data-entry]', chrome.runtime.lastError.message);
+            return;
+        }
+        if (response && response.ok === false) alert(response.error);
+    });
+}
 
 // Parse Data functionality
 document.addEventListener('DOMContentLoaded', () => {
@@ -229,6 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'fill':
                     openNewTabWithData(actionEl);
                     break;
+                case 'fill-group':
+                    fillGroup(actionEl);
+                    break;
                 case 'copy-with':
                     copyTextWithNewLine(actionEl.dataset.value || '');
                     break;
@@ -287,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedValue = event.target.value;
         document.getElementById('websiteBaseUrlInput').value = selectedValue;
         getAllFields();
+        reportSignInStatus();
     });
 
     // Store autoSubmitCheckbox value in local storage

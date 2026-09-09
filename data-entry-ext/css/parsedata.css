@@ -360,6 +360,36 @@ textarea.warning-output {
     padding-left: 30px;
 }
 
+/* Sign-in state for the picked site: quiet until it has something to say. */
+.sign-in-status {
+    display: flex;
+    align-items: center;
+    font-size: medium;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #777;
+}
+
+.sign-in-status.ok {
+    color: #2e7d32;
+}
+
+.sign-in-status.bad {
+    color: #c62828;
+}
+
+/* Option checkboxes in the tab columns. The browser default box is 13px, which
+   is easy to miss beside 16px label text; sizing the input itself keeps the
+   click target and the drawn box the same, which transform: scale() does not. */
+.content-section input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 6px;
+    accent-color: #1976d2;
+    cursor: pointer;
+}
+
 /* Auto Submit checkbox: pushed to the right, sized to the text input height */
 .header-section .checkbox-group {
     display: flex;
@@ -379,7 +409,7 @@ textarea.warning-output {
     cursor: pointer;
 }
 
-.header-section .form-check-label {
+.header-section .checkbox-group label {
     font-size: medium;
     line-height: 1;
     white-space: nowrap;

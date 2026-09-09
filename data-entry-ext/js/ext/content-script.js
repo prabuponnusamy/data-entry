@@ -1,4 +1,5 @@
 
+const RELOAD_DELAY_MS = 3000; // 3 seconds
 //1DCut 1DTkt 2DCut 2DTkt  3DBox 3DCut 3DTkt 4DBox 4DCut 4DTkt 5DBox 5DCut 5DTkt
 const TARGET_1D_TKT = '1DTkt';
 const TARGET_1D_CUT = '1DCut';

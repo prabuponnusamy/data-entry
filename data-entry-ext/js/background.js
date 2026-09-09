@@ -1,3 +1,23 @@
+// Fill All settings. The queue and the finished run are the only two things
+// the worker keeps between page loads, each under one session-storage key.
+const QUEUE_KEY = 'fillQueue';
+const SUMMARY_KEY = 'fillSummary';
+
+/** Redirects allowed per block before a run that cannot reach its page is dropped. */
+const MAX_NAVIGATIONS = 3;
+
+/** Time for the page's own scripts to settle before the boxes are counted. */
+const SUBMIT_DELAY_MS = 1500;
+
+/** How long a banner stays up before the page reloads or submits. */
+const RELOAD_DELAY_MS = 4000;
+
+/** No summary.html ships with the extension yet; the last block's banner reports the run. */
+const OPEN_SUMMARY_TAB = false;
+
+/** Where a site sends you once the session has gone. */
+const LOGIN_PATH = /(^|\/)(login|signin|sign-in|auth)(\/|$)/i;
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "openAndFill") {
         
@@ -24,13 +44,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     }
 
+    // Asked when a site is picked, so a dead session shows up then rather than
+    // at the start of a run. The worker answers because it owns the check.
+    if (message?.action === 'checkSignIn') {
+        isSignedIn(message.url).then((signedIn) => sendResponse({ signedIn }));
+        return true;
+    }
+
     if (message?.action === 'fillAll') {
-        startQueue(message.blocks ?? [], message.supplierId ?? '', {
+        // The reply waits for the sign-in check, so the page hears why a run
+        // never started rather than watching a tab open and do nothing.
+        startQueue(message.blocks ?? [], message.supplierValueLabel ?? '', {
             autoSubmit: message.autoSubmit === true,
             dryRun: message.dryRun === true,
             showFillBanner: message.showFillBanner !== false,
-        });
-        sendResponse({ ok: true });
+        }).then(sendResponse);
         return true;
     }
 
@@ -58,7 +86,17 @@ function fillData(data, target, supplierValueLabel, targetTkt, autoSubmit) {
  * one page load and the next.
  */
 async function startQueue(blocks, supplierId, { autoSubmit, dryRun, showFillBanner }) {
-    if (blocks.length === 0) return;
+    if (blocks.length === 0) return { ok: false, error: 'Nothing to fill.' };
+
+    // Every block shares one origin, so the first page answers for the run.
+    if (!(await isSignedIn(blocks[0].url))) {
+        return {
+            ok: false,
+            error:
+                `Not signed in to ${new URL(blocks[0].url).origin}.\n\n` +
+                'Open the site, log in, then start the fill again.',
+        };
+    }
 
     const tab = await chrome.tabs.create({ url: blocks[0].url });
     await save({
@@ -73,6 +111,38 @@ async function startQueue(blocks, supplierId, { autoSubmit, dryRun, showFillBann
         startedAt: Date.now(),
         filled: [],
     });
+    return { ok: true };
+}
+
+/**
+ * Is the session still good for this URL?
+ *
+ * The site is asked rather than the cookie jar: a session cookie is handed to
+ * logged-out visitors too, so only the server can say whether the session
+ * behind it still counts. Cookies ride along because the host is in
+ * host_permissions.
+ *
+ * A network error is not a logged-out session — the run is allowed through, to
+ * fail visibly on the page rather than be blocked from here on a guess.
+ */
+async function isSignedIn(url) {
+    try {
+        const response = await fetch(url, { credentials: 'include', redirect: 'follow' });
+        if (isLoginPage(response.url)) return false;
+        // Some sites serve the login form in place rather than redirecting to it.
+        return !/<input[^>]+type=["']?password/i.test(await response.text());
+    } catch (err) {
+        console.warn('[data-entry] sign-in check could not be made', err);
+        return true;
+    }
+}
+
+function isLoginPage(url) {
+    try {
+        return LOGIN_PATH.test(new URL(url).pathname);
+    } catch {
+        return false;
+    }
 }
 
 
@@ -90,6 +160,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     const state = (await chrome.storage.session.get(QUEUE_KEY))[QUEUE_KEY];
     if (!state || tabId !== state.tabId) return;
 
+    // A session that drops mid-run looks like an unreachable page, and the
+    // redirect budget would be spent bouncing off the login form. Say so and
+    // stop, leaving the page on the login form for whoever is watching.
+    if (isLoginPage(tab.url)) {
+        await chrome.storage.session.remove(QUEUE_KEY);
+        await notify(tabId, `Signed out — log in and start the fill again. Stopped after ${state.index} of ${state.blocks.length} block(s).`);
+        return;
+    }
 
     if (state.index >= state.blocks.length) {
         await finish(state);
@@ -127,6 +205,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
         args: [
             block.text,
             block.target,
+            block.targetTkt,
             state.supplierId,
             state.index + 1,
             state.blocks.length,
@@ -213,6 +292,7 @@ function notify(tabId, text) {
 function fillPage(
     payload,
     target,
+    targetTkt,
     supplierId,
     position,
     total,
@@ -224,7 +304,7 @@ function fillPage(
 ) {
     const rows = payload.split('\n').filter((line) => line.trim());
 
-    console.log(`[data-entry] filling ${position}/${total}`, { target, supplierId, rows });
+    console.log(`[data-entry] filling ${position}/${total}`, { target, targetTkt, supplierId, rows });
 
     if (typeof insertDataIntoFields !== 'function') {
         console.error('[data-entry] content script not loaded on this page');
@@ -243,7 +323,7 @@ function fillPage(
     const realAlert = window.alert;
     window.alert = (msg) => complaints.push(String(msg));
     try {
-        insertDataIntoFields(rows, target, false, supplierId);
+        insertDataIntoFields(rows, target, false, supplierId, targetTkt, false);
     } catch (err) {
         complaints.push(String(err && err.message ? err.message : err));
     } finally {
@@ -278,6 +358,7 @@ function fillPage(
                     'Check the form and click Save yourself. The next block fills when you do.',
                 'alert',
             );
+            
             return;
         }
 
@@ -354,6 +435,17 @@ function fillPage(
         const filled = numberFields.filter((el) => el.value.trim() !== '').length;
 
         const supplier = form?.querySelector('select[name="supplierID"], select[name="supplier"]');
+        console.log('[data-entry] submit inspection', {
+            expectedRows,
+            expectedFields,
+            filledFields: filled,
+            rowsMatch: filled === expectedFields,
+            button,
+            submitButton: button ? button.textContent.trim() : '(not found)',
+            formAction: form?.getAttribute('action') ?? '(no form)',
+            supplierChosen: supplier ? supplier.value || '(none)' : '(no supplier field)',
+            wouldSubmit: !!button && filled === expectedFields,
+        });
 
         return {
             block: `${at} of ${of}`,
