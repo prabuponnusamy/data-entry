@@ -91,6 +91,18 @@ function buildOutputLines(cleanedUpGroupedLines) {
                         if (targetValueLocal == 'ABC') {
                             targetValueLocal = 'ALL';
                         }
+                        if (targetValueLocal == 'A-B-C') {
+                            targetValueLocal = 'ALL';
+                        }
+                        if (targetValueLocal == 'A-B') {
+                            targetValueLocal = 'AB';
+                        }
+                        if (targetValueLocal == 'A-C') {
+                            targetValueLocal = 'AC';
+                        }
+                        if (targetValueLocal == 'B-C') {
+                            targetValueLocal = 'BC';
+                        }
                         /*if (finalBoxStatus) {
                             outLines.push(`2DBox,${n},${qtyValueLocal ? qtyValueLocal : '1'},,${targetValueLocal}`);
                         } else */
