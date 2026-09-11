@@ -12,7 +12,7 @@ function renderFinalOutput(messageGroup, label, hasError) {
 
     // Build image HTML with fallback if image not found
     const isImageTitle = label.toUpperCase().includes('ATTACHMENT:');
-    const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" style="max-width: 200px; margin-top: 10px;">` : `<div style="color: #999; padding: 10px; background: #f5f5f5; border-radius: 4px; max-width: 200px; margin-top: 10px;">Image not found</div>`;
+    const imgHtml = imageUrl ? attachmentMediaHtml(imagePath, imageUrl, label) : `<div style="color: #999; padding: 10px; background: #f5f5f5; border-radius: 4px; max-width: 200px; margin-top: 10px;">${isAudioAttachment(imagePath) ? 'Audio' : 'Image'} not found</div>`;
     // Each image and the blocks read from it are one section, so a group can be
     // filled on its own — the same separator the output is already laid out by.
     var table = '';

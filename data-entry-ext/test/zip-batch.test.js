@@ -117,3 +117,30 @@ test('every export zip in the upload is read, nested ones included', async () =>
     assert.ok(byPath['Broken.zip'].error, 'a zip that cannot be opened carries its error');
     assert.strictEqual(byPath['Draw1.zip'].error, undefined);
 });
+
+test('voice notes are read with the pictures, typed so the page can play them', async () => {
+    const ctx = load();
+    const zip = await JSZip.loadAsync(await zipOf({
+        'WhatsApp Chat.txt': 'chat',
+        'PTT-20260909-WA0012.opus': 'ogg bytes',
+        'IMG-0001.jpg': 'jpeg bytes',
+        'notes.pdf': 'pdf bytes'
+    }));
+    const contents = await ctx.readZipExport(zip);
+    const byName = Object.fromEntries(Array.from(contents.images).map((file) => [file.name, file]));
+
+    assert.deepStrictEqual(Object.keys(byName).sort(), ['IMG-0001.JPG', 'PTT-20260909-WA0012.OPUS']);
+    assert.strictEqual(byName['PTT-20260909-WA0012.OPUS'].audio, true);
+    assert.strictEqual(byName['PTT-20260909-WA0012.OPUS'].blob.type, 'audio/ogg');
+    assert.strictEqual(byName['IMG-0001.JPG'].audio, false);
+});
+
+test('audio attachments are told apart by extension', () => {
+    const ctx = load();
+    assert.strictEqual(ctx.isAudioAttachment('PTT-20260909-WA0012.OPUS'), true);
+    assert.strictEqual(ctx.isAudioAttachment('00000047-AUDIO-2026-01-21-15-03-02.m4a'), true);
+    assert.strictEqual(ctx.isAudioAttachment('IMG-0001.JPG'), false);
+    assert.strictEqual(ctx.isAudioAttachment('opus'), false);
+    assert.match(ctx.attachmentMediaHtml('PTT.OPUS', 'blob:x', 'a'), /^<audio controls/);
+    assert.match(ctx.attachmentMediaHtml('IMG.JPG', 'blob:x', 'a'), /^<img /);
+});

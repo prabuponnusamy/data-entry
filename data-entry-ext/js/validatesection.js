@@ -128,11 +128,14 @@ function generateTable() {
         //console.log('Found image URL:', imageUrl);
 
         // Build image HTML with fallback if image not found
-        const imgHtml = imageUrl ? `<br/>
+        // Audio gets a player; there is no text in it for Extract Text to read.
+        const imgHtml = !imageUrl ? `` : isAudioAttachment(imagePath) ? `<br/>
+            ${attachmentMediaHtml(imagePath, imageUrl, outputMsg)}
+        ` : `<br/>
             <button class="extract-text-btn" data-image-name="${imagePath.toUpperCase()}">Extract Text</button>
             <br/>
-            <img src="${imageUrl}" alt="${outputMsg}" style="max-width: 200px; margin-top: 10px;">
-        ` : ``;
+            ${attachmentMediaHtml(imagePath, imageUrl, outputMsg)}
+        `;
         // How to set focus on textarea after generating table - set focus on first textarea only
         tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1} <button class="delete-row-btn">Delete</button></td>
             <td>

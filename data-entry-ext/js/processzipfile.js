@@ -38,9 +38,33 @@ function isJunkZipEntry(path) {
     return /(^|\/)__MACOSX\//.test(path) || /(^|\/)\._/.test(path);
 }
 
+// Audio an export can carry, as the type an <audio> element plays it as.
+// WhatsApp voice notes are .opus: Opus in an Ogg container.
+const AUDIO_MIME_TYPES = {
+    opus: 'audio/ogg', ogg: 'audio/ogg', m4a: 'audio/mp4', mp3: 'audio/mpeg', aac: 'audio/aac', wav: 'audio/wav'
+};
+
+function audioMimeType(name) {
+    return name.includes('.') ? AUDIO_MIME_TYPES[name.split('.').pop().toLowerCase()] || '' : '';
+}
+
+function isAudioAttachment(name) {
+    return audioMimeType(name) !== '';
+}
+
+// An attachment found in the zip: a player for audio, the picture otherwise.
+function attachmentMediaHtml(name, url, alt) {
+    if (isAudioAttachment(name)) {
+        return `<audio controls preload="metadata" src="${url}" title="${alt}" style="width: 240px; margin-top: 10px;"></audio>`;
+    }
+    return `<img src="${url}" alt="${alt}" style="max-width: 200px; margin-top: 10px;">`;
+}
+
 /**
- * The chat text and images in one WhatsApp export zip. Each image gets its
- * object URL here, once, so showing the same zip again does not make another.
+ * The chat text and attachments in one WhatsApp export zip. `images` holds
+ * every attachment shown on the page - pictures and audio (`audio: true`) -
+ * each with its object URL made here, once, so showing the same zip again
+ * does not make another.
  */
 function readZipExport(zip) {
     const texts = [];
@@ -49,9 +73,12 @@ function readZipExport(zip) {
         if (zipEntry.dir || isJunkZipEntry(relativePath)) return;
         if (zipEntry.name.endsWith('.txt')) {
             texts.push(zipEntry.async('string'));
-        } else if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(zipEntry.name)) {
+        } else if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(zipEntry.name) || isAudioAttachment(zipEntry.name)) {
             images.push(zipEntry.async('blob').then(function (blob) {
-                return { name: zipEntry.name.toUpperCase(), blob: blob, url: URL.createObjectURL(blob) };
+                const audio = isAudioAttachment(zipEntry.name);
+                // Zip entries come out untyped; the player needs the format.
+                const typed = audio ? new Blob([blob], { type: audioMimeType(zipEntry.name) }) : blob;
+                return { name: zipEntry.name.toUpperCase(), blob: typed, url: URL.createObjectURL(typed), audio: audio };
             }));
         }
     });
@@ -66,6 +93,8 @@ function useZipImages(images) {
     visionRequests.clear();
     images.forEach(function (image) {
         imageMap.set(image.name, image.url);
+        // OCR reads text off pictures only.
+        if (image.audio) return;
         blobToBase64(image.blob).then(function (base64) {
             visionRequests.set(image.name, {
                 image: { content: base64 },
