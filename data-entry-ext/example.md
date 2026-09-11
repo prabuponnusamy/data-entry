@@ -1,0 +1,19 @@
+curl --url 'https://anushuya.com/employee/drawOne/4dbox/store' \
+  -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+  -H 'accept-language: en-US,en;q=0.9' \
+  -H 'cache-control: max-age=0' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary9G5Vb5M8knRak4gc' \
+  -b 'XSRF-TOKEN=eyJpdiI6IkNtdGg4dTQ0OURwU3dmRWZURXdPbnc9PSIsInZhbHVlIjoiZTYyNCtqMW1BTi8wZU9Ua0tqRDkxR3owVzl3T1ZXSGxqY3ExdjhxbDBnc2Roc2lGS3ZSRmlsaU91eWpEb1hFNHpSS2NTR3R2eHZDKzRSMlFsR2N2LytkQndMMVpIYzBmRGo4YzdVN09YcmVjdU05N3RRK2xLVXBYZjJPeXhUZGMiLCJtYWMiOiJhYWNkYjhjYzM2Yjk2MjkyZTZiNDcyNDNlZmI5MDA3NDg2OTlhZWYxNDYxOThlMGVmNWMwYTAxM2ZiZTFmN2MxIiwidGFnIjoiIn0%3D; anushuya_session=eyJpdiI6IjYxaWlScmxHVnZib0t0RzB4eWxRRnc9PSIsInZhbHVlIjoiMm9oZU5WWWtOTDF5akRUaFZLdWpCTWpyaUlvWmFBem5kYnIrd25FcE01YXVvZXhvTVNFT255WUlVckdkYjRUVjVwakdrdUVvRS9CeUFEdVZDWjk0NEJsRFp2N3NPMHhGYjFCSnFUWjloOVlpbklSZlRoOHl6L3hTbDlTcEgzYUwiLCJtYWMiOiJmMGJhNjE5NGJkMGM1NTUxOTI0YjdhOTYzNzEwYTE0N2RhZGZmYTc0NDJhYjk2ZGE0OGQxMzZjNWM3NGU0N2MxIiwidGFnIjoiIn0%3D' \
+  -H 'origin: https://anushuya.com' \
+  -H 'priority: u=0, i' \
+  -H 'referer: https://anushuya.com/employee/drawOne/4dbox' \
+  -H 'sec-ch-ua: "Chromium";v="152", "Not?A_Brand";v="24", "Google Chrome";v="152"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: document' \
+  -H 'sec-fetch-mode: navigate' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'sec-fetch-user: ?1' \
+  -H 'upgrade-insecure-requests: 1' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36' \
+  --data-raw $'------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="_token"\r\n\r\nfQUpUvw6XO9JtRYO3EVTDqBQwxfWb1GPRrsZGtzD\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="date"\r\n\r\n01-07-2026\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="supplier"\r\n\r\n531\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="rate"\r\n\r\n4D_Box100\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="id"\r\n\r\n\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="abc[]"\r\n\r\n9999\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc\r\nContent-Disposition: form-data; name="abc_qty[]"\r\n\r\n1\r\n------WebKitFormBoundary9G5Vb5M8knRak4gc--\r\n'

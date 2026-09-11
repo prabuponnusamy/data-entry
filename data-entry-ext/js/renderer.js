@@ -76,6 +76,28 @@ function copyTextarea(button) {
     return textarea.value;
 }
 
+/**
+ * Show blocks as filled the way a single Fill does: each textarea turns green
+ * and its button says when. Whatever was green from an earlier fill drops to
+ * the "done before" colour first, so only the latest run stands out.
+ */
+function markBlocksFilled(buttons) {
+    document.querySelectorAll('.copied-now').forEach(ta => {
+        ta.classList.remove('copied-now');
+        ta.classList.add('copied');
+    });
+    const label = 'Filled! @ ' + new Date().toLocaleTimeString();
+    buttons.forEach(button => {
+        const textarea = button.parentElement.querySelector('textarea');
+        if (textarea) {
+            textarea.classList.remove('copied');
+            textarea.classList.add('copied-now');
+        }
+        button.textContent = label;
+        button.style.background = '#28a745';
+    });
+}
+
 function copyInputEditedData() {
     const msgs = document.querySelectorAll('.original-msg');
     let value = '';

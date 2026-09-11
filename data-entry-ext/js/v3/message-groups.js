@@ -108,15 +108,17 @@ function splitTargetSegments(line) {
  * Groups are separated by timestamp lines containing ":"
  */
 function getMessageGroups() {
-    const inputData = applyTextSubstitutions(document.getElementById(INPUT_FIELD_ID).value).replace(
+    const inputData = (applyTextSubstitutions(document.getElementById(INPUT_FIELD_ID).value).replace(
         /(\d+)\s*To\s*(\d+)/gi,
         "$1 TO $2"
-    );
+    ));
+
 
     const lines = inputData.split('\n').filter(line => line.trim() !== '');
     let messageGroup = [];
     let message = [];
     lines.forEach(line => {
+        line = toNormalText(line.trim());
         // Matches regex \[.*: then replace that with empty string and add --- at the end
         if (line.match(headerLineMatchRegex) || line.includes(':')) {
             if (message.length > 0) {

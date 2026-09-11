@@ -36,7 +36,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                             message.target, 
                             message.supplierValueLabel, 
                             message.targetTkt, 
-                            message.autoSubmit ? true : false
+                            message.autoSubmit ? true : false,
+                            message.entryDate || ''
                         ]
                     });
                 }
@@ -58,13 +59,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             autoSubmit: message.autoSubmit === true,
             dryRun: message.dryRun === true,
             showFillBanner: message.showFillBanner !== false,
+            entryDate: message.entryDate || '',
         }).then(sendResponse);
         return true;
     }
 
 });
 
-function fillData(data, target, supplierValueLabel, targetTkt, autoSubmit) {
+function fillData(data, target, supplierValueLabel, targetTkt, autoSubmit, entryDate) {
     const rows = data.split("\n");
     console.log("Data received in content script for target: " + target + "\nData:\n" + data + "\nSupplier: " + supplierValueLabel + "\nTarget Tkt: " + targetTkt + "\nAuto Submit: " + autoSubmit);
     /*
@@ -75,7 +77,7 @@ function fillData(data, target, supplierValueLabel, targetTkt, autoSubmit) {
         }
     */
     //alert(targetTkt);
-    insertDataIntoFields(rows, target, false, supplierValueLabel, targetTkt, autoSubmit);
+    insertDataIntoFields(rows, target, false, supplierValueLabel, targetTkt, autoSubmit, entryDate);
 }
 
 /**
@@ -85,7 +87,7 @@ function fillData(data, target, supplierValueLabel, targetTkt, autoSubmit) {
  * worker is torn down when idle and would otherwise lose its place between
  * one page load and the next.
  */
-async function startQueue(blocks, supplierId, { autoSubmit, dryRun, showFillBanner }) {
+async function startQueue(blocks, supplierId, { autoSubmit, dryRun, showFillBanner, entryDate }) {
     if (blocks.length === 0) return { ok: false, error: 'Nothing to fill.' };
 
     // Every block shares one origin, so the first page answers for the run.
@@ -106,6 +108,7 @@ async function startQueue(blocks, supplierId, { autoSubmit, dryRun, showFillBann
         autoSubmit,
         dryRun,
         showFillBanner,
+        entryDate,
         index: 0,
         navigations: 0,
         startedAt: Date.now(),
@@ -214,6 +217,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
             state.showFillBanner !== false,
             SUBMIT_DELAY_MS,
             RELOAD_DELAY_MS,
+            state.entryDate || '',
         ],
     });
 
@@ -301,6 +305,7 @@ function fillPage(
     showFillBanner,
     SUBMIT_DELAY_MS,
     RELOAD_DELAY_MS,
+    entryDate,
 ) {
     const rows = payload.split('\n').filter((line) => line.trim());
 
@@ -323,7 +328,7 @@ function fillPage(
     const realAlert = window.alert;
     window.alert = (msg) => complaints.push(String(msg));
     try {
-        insertDataIntoFields(rows, target, false, supplierId, targetTkt, false);
+        insertDataIntoFields(rows, target, false, supplierId, targetTkt, false, entryDate);
     } catch (err) {
         complaints.push(String(err && err.message ? err.message : err));
     } finally {
@@ -435,19 +440,15 @@ function fillPage(
         const filled = numberFields.filter((el) => el.value.trim() !== '').length;
 
         const supplier = form?.querySelector('select[name="supplierID"], select[name="supplier"]');
-        console.log('[data-entry] submit inspection', {
-            expectedRows,
-            expectedFields,
-            filledFields: filled,
-            rowsMatch: filled === expectedFields,
-            button,
-            submitButton: button ? button.textContent.trim() : '(not found)',
-            formAction: form?.getAttribute('action') ?? '(no form)',
-            supplierChosen: supplier ? supplier.value || '(none)' : '(no supplier field)',
-            wouldSubmit: !!button && filled === expectedFields,
-        });
 
-        return {
+        // With a date sent, nothing is filed until the date box holds it; the
+        // site's own date would put the tickets under the wrong day.
+        const dateField =
+            form?.querySelector('input[name="date"]') ?? document.querySelector('input[name="date"]');
+        const dateOnPage = dateField ? dateField.value.trim() : '(no date field)';
+        const dateMatches = !entryDate || dateOnPage === entryDate;
+
+        const check = {
             block: `${at} of ${of}`,
             expectedRows,
             expectedFields,
@@ -457,8 +458,12 @@ function fillPage(
             submitButton: button ? button.textContent.trim() : '(not found)',
             formAction: form?.getAttribute('action') ?? '(no form)',
             supplierChosen: supplier ? supplier.value || '(none)' : '(no supplier field)',
-            wouldSubmit: !!button && filled === expectedFields,
+            dateOnPage,
+            dateMatches,
+            wouldSubmit: !!button && filled === expectedFields && dateMatches,
         };
+        console.log('[data-entry] submit inspection', check);
+        return check;
     }
 
     /**
@@ -490,7 +495,10 @@ function fillPage(
             lines[0] +=
                 ` · ${info.expectedRows} row(s) → ${info.expectedFields} box(es) expected, ` +
                 `${info.filledFields} filled ${info.rowsMatch ? '(match)' : '(MISMATCH)'}`;
-            lines.push(`Submit button: ${info.submitButton} · supplier: ${info.supplierChosen}`);
+            lines.push(
+                `Submit button: ${info.submitButton} · supplier: ${info.supplierChosen} · ` +
+                    `date: ${info.dateOnPage}${info.dateMatches ? '' : ` (MISMATCH, expected ${entryDate})`}`,
+            );
         }
         lines.push(verdict);
         banner.textContent = lines.join('\n');

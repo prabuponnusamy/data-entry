@@ -272,7 +272,7 @@ function handleInsertData(type, value, quantity, scriptVersion, target1D2D, show
     }
 }
 
-function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt, autoSubmit) {
+function insertDataIntoFields(valuesToInsert, type, showData, supplierId, targetTkt, autoSubmit, entryDate) {
     //alert("No of entries to insert: " + valuesToInsert.length);
     //alert(`Supplier id ${supplierId}, target tkt ${targetTkt}`);
     //alert(supplierId + " - " + targetTkt)
@@ -299,6 +299,20 @@ function insertDataIntoFields(valuesToInsert, type, showData, supplierId, target
             }
         } else {
             alert("Supplier field not found")
+        }
+    }
+
+    // Entry date (DD-MM-YYYY): the site fills in today, which is wrong when the
+    // messages are entered the day after they were sent.
+    if (entryDate) {
+        const dateField = document.querySelector('input[name="date"]');
+        if (!dateField) {
+            alert("Date field not found");
+        } else if (dateField.value.trim() !== entryDate) {
+            dateField.value = entryDate;
+            dateField.dispatchEvent(new Event("input", { bubbles: true }));
+            dateField.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("Date set:", entryDate);
         }
     }
 

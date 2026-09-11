@@ -70,6 +70,8 @@ function openNewTabWithData(actionEl) {
         alert('Please select a supplier before filling the data.');
         return;
     }
+    const entryDate = readEntryDateForFill();
+    if (entryDate === null) return;
     chrome.runtime.sendMessage({
         action: "openAndFill",
         payload: data,
@@ -77,7 +79,8 @@ function openNewTabWithData(actionEl) {
         target: target,
         supplierValueLabel: supplierValueLabel,
         targetTkt: targetkey,
-        autoSubmit: autoSubmit
+        autoSubmit: autoSubmit,
+        entryDate: entryDate
     });
 }
 
@@ -96,20 +99,21 @@ function reportSignInStatus() {
 
     const url = buildFillUrl(TARGET_3D_TKT);
     if (!url) {
-        status.textContent = '';
+        status.innerHTML = '';
         status.className = 'sign-in-status';
         return;
     }
 
-    status.textContent = 'Checking sign-in…';
+    status.innerHTML = 'Checking sign-in…';
     status.className = 'sign-in-status checking';
     chrome.runtime.sendMessage({ action: 'checkSignIn', url: url }, (response) => {
         if (chrome.runtime.lastError || !response) {
-            status.textContent = '';
+            status.innerHTML = '';
             status.className = 'sign-in-status';
             return;
         }
-        status.textContent = response.signedIn ? '✓ Signed in' : '✗ Not signed in — log in first';
+        // replace the content after employee/ and append login - employee/login
+        status.innerHTML = response.signedIn ? '✓ Signed in' : '✗ Not signed in — log in first. <a href="' + url.replace(/\/employee\/.*/, '/employee/login') + '" target="_blank">Log in</a>';
         status.className = 'sign-in-status ' + (response.signedIn ? 'ok' : 'bad');
     });
 }
@@ -123,24 +127,28 @@ function reportSignInStatus() {
  * the run.
  */
 function collectFillBlocks(scope) {
+    return fillButtonsWithData(scope).map(button => ({
+        target: button.dataset.target,
+        targetTkt: button.dataset.targetkey,
+        url: buildFillUrl(button.dataset.target),
+        text: blockText(button)
+    }));
+}
+
+/** The textarea beside a Fill button, trimmed; empty when there is none. */
+function blockText(button) {
+    const textarea = button.parentElement.querySelector('textarea');
+    return textarea ? textarea.value.trim() : '';
+}
+
+/** The Fill buttons whose block would be queued — the ones with data in them. */
+function fillButtonsWithData(scope) {
     const buttons = (scope || document).querySelectorAll('[data-action="fill"]');
-    const blocks = [];
-    Array.from(buttons).forEach(button => {
-        const textarea = button.parentElement.querySelector('textarea');
-        const text = textarea ? textarea.value.trim() : '';
-        if (!text) return;
-        blocks.push({
-            target: button.dataset.target,
-            targetTkt: button.dataset.targetkey,
-            url: buildFillUrl(button.dataset.target),
-            text: text
-        });
-    });
-    return blocks;
+    return Array.from(buttons).filter(button => blockText(button) !== '');
 }
 
 /** What the confirm shows: the amount each group is priced at, not just a count. */
-function fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun) {
+function fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun, entryDate) {
     const rows = blocks.reduce((sum, block) => sum + block.text.split('\n').length, 0);
     const lines = [
         `Fill ${blocks.length} block(s), ${rows} row(s)?`,
@@ -151,6 +159,7 @@ function fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun) {
     });
     lines.push('');
     lines.push(`Supplier: ${supplierValueLabel}`);
+    lines.push(`Date: ${entryDate || 'as the site shows it'}`);
     if (dryRun) {
         lines.push('DRY RUN — nothing will be submitted.');
     } else if (autoSubmit) {
@@ -163,8 +172,11 @@ function fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun) {
  * Hand the whole run to the service worker in one message. The worker owns the
  * tab from here: the page it opens works through the blocks one page load at a
  * time, so nothing further is needed from this page.
+ *
+ * `onStarted` runs once the worker says the run began — not when it refused,
+ * e.g. because the site is signed out.
  */
-function fillAllBlocks(scope) {
+function fillAllBlocks(scope, onStarted) {
     const base = (document.getElementById('websiteBaseUrlInput')?.value || '').trim();
     if (!base) {
         alert('Please enter the website base URL. Eg https://abidear.com/employee');
@@ -189,6 +201,9 @@ function fillAllBlocks(scope) {
         return;
     }
 
+    const entryDate = readEntryDateForFill();
+    if (entryDate === null) return;
+
     const autoSubmit = isChecked('autoSubmitCheckbox');
     const dryRun = isChecked('dryRunCheckbox');
     const showFillBanner = isChecked('fillBannerCheckbox', true);
@@ -198,7 +213,7 @@ function fillAllBlocks(scope) {
     // Debug mode is the ask-first switch for a single Fill; a run of blocks
     // reads the same way, with what is about to be filed spelled out.
     if (isChecked('debugModeCheckbox') &&
-        !confirm(fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun))) {
+        !confirm(fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun, entryDate))) {
         return;
     }
 
@@ -208,13 +223,18 @@ function fillAllBlocks(scope) {
         supplierValueLabel: supplierValueLabel,
         autoSubmit: autoSubmit,
         dryRun: dryRun,
-        showFillBanner: showFillBanner
+        showFillBanner: showFillBanner,
+        entryDate: entryDate
     }, (response) => {
         if (chrome.runtime.lastError) {
             console.warn('[data-entry]', chrome.runtime.lastError.message);
             return;
         }
-        if (response && response.ok === false) alert(response.error);
+        if (response && response.ok === false) {
+            alert(response.error);
+        } else if (response && response.ok && onStarted) {
+            onStarted();
+        }
     });
 }
 
@@ -250,6 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('processZipBtn')?.addEventListener('click', (event) => {
         parseZipFile(event);
     });
+
+    document.getElementById('processZipOfZipsBtn')?.addEventListener('click', () => {
+        parseZipOfZips();
+    });
+
+    document.getElementById('zipBatchContainer')?.addEventListener('change', onZipBatchUrlChange);
 
     document.getElementById('showOnlyErrorsBtn')?.addEventListener('click', () => {
         document.getElementById('validate-tab').click();
@@ -305,6 +331,18 @@ document.addEventListener('DOMContentLoaded', () => {
             processInput();
         });
     });
+
+    // Zip -> target URL map: restore, persist on every edit, and re-resolve the
+    // zip batch once the user leaves the field.
+    const zipTargetUrlMapField = document.getElementById(ZIP_TARGET_URL_MAP_FIELD_ID);
+    if (zipTargetUrlMapField) {
+        zipTargetUrlMapField.value = localStorage.getItem(ZIP_TARGET_URL_MAP_FIELD_ID) || '';
+        zipTargetUrlMapField.addEventListener('input', () => localStorage.setItem(ZIP_TARGET_URL_MAP_FIELD_ID, zipTargetUrlMapField.value));
+        zipTargetUrlMapField.addEventListener('change', () => {
+            localStorage.setItem(ZIP_TARGET_URL_MAP_FIELD_ID, zipTargetUrlMapField.value);
+            zipTargetUrlMapChanged();
+        });
+    }
 
     // set default value of inputData textarea from local storage if available
     const savedInputData = localStorage.getItem('inputData');
@@ -369,6 +407,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'copy-whatsapp':
                     copyWhatsappInput();
                     actionEl.textContent = 'Copied!';
+                    break;
+                case 'load-zip':
+                    loadBatchZip(Number(actionEl.dataset.index));
                     break;
                 default:
                     // unknown data-action; do nothing

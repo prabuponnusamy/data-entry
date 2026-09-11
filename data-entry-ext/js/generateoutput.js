@@ -58,10 +58,11 @@ function renderFinalOutput(messageGroup, label, hasError) {
             lists.push(values.slice(slIdx, slIdx + allowedListSize));
         }
         lists.forEach((sublist, sublistIdx) => {
-            idx++;
-            if (idx % 6 === 0 && idx !== 0) {
+            // Start a new row once the current one already holds 6 cells.
+            if (idx > 0 && idx % 6 === 0) {
                 table += `</tr><tr>`;
             }
+            idx++;
             //🎉 ${match.join(', ')} 🎉
             var match = [];
             sublist.forEach(line => {
@@ -72,12 +73,12 @@ function renderFinalOutput(messageGroup, label, hasError) {
             });
             // create new text area dont show buttons if has error 
             table += `
-                <td width="19%">
+                <td width="16%">
                     <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
                     ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                     <div>
-                        ${hasError ? '' : `<button class="fill-btn" data-action="fill" data-target="${key.substring(0, 5)}" data-targetkey="${key}" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Fill</button>
-                        <button class="copy-btn" data-action="copy" style="margin-bottom: 5px; padding: 4px 8px; font-size: 12px;">Copy</button>`}
+                        ${hasError ? '' : `<button class="fill-btn" data-action="fill" data-target="${key.substring(0, 5)}" data-targetkey="${key}" style="margin-bottom: 5px; padding: 4px 8px; font-size: 11px;">Fill</button>
+                        <button class="copy-btn" data-action="copy" style="margin-bottom: 5px; padding: 4px 8px; font-size: 11px;">Copy</button>`}
                         <textarea name="formatted-output" class="output-textarea" placeholder="Formatted output..." rows="20">${sublist.join('\n')}</textarea>
                     </div>
                 </td>
@@ -85,7 +86,7 @@ function renderFinalOutput(messageGroup, label, hasError) {
         });
     });
     for (var i = idx; i % 6 !== 0; i++) {
-        table += `<td width="19%"></td>`;
+        table += `<td width="16%"></td>`;
     }
     table += `</tr></tbody></table></section>`;
     // Append to finalOutputContent div
@@ -99,6 +100,9 @@ function renderFinalOutput(messageGroup, label, hasError) {
  * The section the button sits in is the group: renderFinalOutput writes one
  * section per image, so scoping the collection to it takes that image's blocks
  * and leaves the rest of the page alone.
+ *
+ * Once the run starts, every queued block — and this button — is marked filled
+ * just as a single Fill marks its own block.
  */
 function fillGroup(actionEl) {
     const section = actionEl.closest('.output-section');
@@ -106,7 +110,8 @@ function fillGroup(actionEl) {
         alert('Could not work out which group this button belongs to.');
         return;
     }
-    fillAllBlocks(section);
+    const buttons = fillButtonsWithData(section);
+    fillAllBlocks(section, () => markBlocksFilled(buttons.concat(actionEl)));
 }
 
 
@@ -263,5 +268,6 @@ function generateFinalOutput() {
         showSuccessMessages(['Total records: ' + totalRecords + '. Final output generated successfully!']);
     }
     document.getElementById('errorLinks').innerHTML = links.join('');
+    refreshEntryDate();
 
 }

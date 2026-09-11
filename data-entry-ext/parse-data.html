@@ -12,15 +12,18 @@
     <div class="container header-section float-section"> <!-- Add borders-->
         <div id="buttonGroupSection" class="button-group">
             <div>
-                <input type="file" id="zipInput" accept=".zip">
-                <button id="processZipBtn" class="btn btn-primary btn-sm">Process Zip</button>
+                <input type="file" id="zipInput" accept=".zip" class="btn-sm">
+                <button id="processZipBtn" class="btn btn-primary btn-sm">Process</button>
+                <input type="file" id="zipOfZipsInput" accept=".zip" title="A zip holding several WhatsApp export zips" class="hide_ele">
+                <button id="processZipOfZipsBtn" class="btn btn-primary btn-sm hide_ele">Process Zip of Zips</button>
                 <button id="parseInputBtn" class="btn btn-primary btn-sm hide_ele">Parse Data</button>
                 <button id="processBtn" class="btn btn-primary btn-sm hide_ele">Process Data</button>
-                <button id="generateFinalOutputBtn" class="btn btn-primary btn-sm">Gen Output</button>
-                <button id="saveInputDataBtn" class="btn btn-secondary btn-sm">Save
-                    Input</button>
+                <button id="generateFinalOutputBtn" class="btn btn-primary btn-sm">Gen</button>
+                <button id="saveInputDataBtn" class="btn btn-secondary btn-sm">Save</button>
             </div>
             <a href="#status-message" class="btn btn-primary btn-sm" title="Go to Top">Top</a>
+        <!--</div>
+        <div id="buttonGroupSection" class="button-group">-->
             <!-- Convert the below to dropdown  -->
             <select id="websiteBaseUrlSelect">
                 <option value="">Select an option</option>
@@ -49,33 +52,47 @@
                     <option value="https://klpoorna.com/employee/drawTwo/">KL Poorna Draw2</option>
                     <option value="https://klpoorna.com/employee/drawThree/">KL Poorna Draw3</option>
                 </optgroup>
-                <optgroup label="Prksha">
-                    <option value="https://prksha.com/employee/draw/1/">Prksha Draw1</option>
-                    <option value="https://prksha.com/employee/draw/2/">Prksha Draw2</option>
-                    <option value="https://prksha.com/employee/draw/3/">Prksha Draw3</option>
-                </optgroup>
                 <optgroup label="Others">
                     <option value="https://orangepblw.com/employee/order/">Orangepblw</option>
+                    <option value="https://prksha.com/employee/draw/1/">Prksha Draw1</option>
                     <option value="https://rajasree.org/employee/order/">Rajasree</option>
                     <option value="https://sameeraa.com/employee/order/">Sameeraa</option>
                 </optgroup>
             </select>
-            <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee" class="">
+            <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee"
+                class="websiteBaseUrl large-input-v3 hide_ele" title="Enter the base URL of the website for data entry.">
             <span id="signInStatus" class="sign-in-status"></span>
-            <div id="target-page-input">
-            </div>
-            <input type="text" id="supplierId" placeholder="Supplier Name" class="medium-input ">
-            <div class="checkbox-group">
-                <input type="checkbox" id="autoSubmitCheckbox" class="form-check-input">
-                <label for="autoSubmitCheckbox">Auto Submit</label>
+            <div class="right-group">
+                <div id="target-page-input">
+                </div>
+                <input type="text" id="supplierId" placeholder="Supplier Name" class="large-input hide_ele"
+                    title="Supplier name to be used in the target page. Read from the messages; type over it to change.">
+                <input type="text" id="entryDate" placeholder="DD-MM-YYYY" class="date-input"
+                    title="Date put into the site's date box. Read from the messages; type over it to change.">
+                <script src="js/entrydate.js"></script>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="autoSubmitCheckbox" class="form-check-input">
+                    <label for="autoSubmitCheckbox">Auto Submit</label>
+                </div>
             </div>
         </div>
         <div id="errorLinks" class="message-links"></div>
-        <ul class="tab-nav" id="myTab" role="tablist"> <button class="tab-button active" id="input-tab"
-                data-tab="input-tab-pane" type="button" role="tab">Input data</button> <button class="tab-button"
-                id="validate-tab" data-tab="validate-tab-pane" type="button" role="tab">Validate data</button> <button
+        <ul class="tab-nav" id="myTab" role="tablist"> 
+            
+            <button class="tab-button active" id="input-tab"
+                data-tab="input-tab-pane" type="button" role="tab">Input data</button> 
+                
+                <button class="tab-button"
+                id="validate-tab" data-tab="validate-tab-pane" type="button" role="tab">Validate data</button> 
+                
+                <button
                 class="tab-button" id="finaloutput-tab" data-tab="finaloutput-tab-pane" type="button" role="tab">Final
-                content</button></ul>
+                content</button> 
+                <!--
+                <button class="tab-button hide-ele" id="zipbatch-tab" data-tab="zipbatch-tab-pane" type="button"
+                role="tab">Zip batch</button>-->
+            
+            </ul>
     </div>
     <div class="container content-section">
         <div class="status-message" id="status-message">Welcome</div>
@@ -157,12 +174,28 @@
                 </div>
             </div>
             <div class="tab-pane" id="validate-tab-pane" role="tabpanel">
-                <div class="info-text">Data generated for the validation.</div>
+                <div class="info-text">Data generated for the validation. <label for="inputData" id="zipFileName1" class="zip-file-name"></label></div>
                 <div id="tableContainer"></div>
             </div>
             <div class="tab-pane" id="finaloutput-tab-pane" role="tabpanel">
-                <div class="info-text">Data generated for data entry.</div>
+                <div class="info-text">Data generated for data entry. <label for="inputData" id="zipFileName2" class="zip-file-name"></label></div>
                 <div id="finalOutputContent"></div>
+            </div>
+            <div class="tab-pane" id="zipbatch-tab-pane" role="tabpanel">
+                <div class="row">
+                    <div class="col col-wide">
+                        <div class="info-text" id="zipBatchSummary">Choose a zip holding WhatsApp export zips and click
+                            Process Zip of Zips.</div>
+                        <div id="zipBatchContainer"></div>
+                    </div>
+                    <div class="col">
+                        <label for="zipTargetUrlMap">Target URL for each zip (one per line: zip name=url)</label>
+                        <textarea id="zipTargetUrlMap" class="output-area" rows="12"
+                            placeholder="Anushuya Draw1=https://anushuya.com/employee/drawOne/"></textarea>
+                        <p class="info-text">A name matches any zip whose file name contains it, ignoring case; the
+                            longest match wins. A URL changed in the table is saved here under that zip's name.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div> <!-- Bootstrap JS Bundle -->
@@ -198,6 +231,7 @@
     <script src="js/eventlistener.js"></script>
     <script src="js/imageparser.js"></script>
     <script src="js/processzipfile.js"></script>
+    <script src="js/zipbatch.js"></script>
     <script src="js/renderer.js"></script>
     <script src="js/validatesection.js"></script>
     <script src="js/generateoutput.js"></script>

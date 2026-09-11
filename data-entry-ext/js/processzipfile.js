@@ -15,6 +15,16 @@ function setZipFileName(name) {
         label.textContent = name ? 'Zip file: ' + name : '';
         label.title = name || '';
     }
+    const label1 = document.getElementById(ZIP_FILE_NAME_FIELD_ID + "1");
+    if (label1) {
+        label1.textContent = name ? 'Zip file: ' + name : '';
+        label1.title = name || '';
+    }
+    const label2 = document.getElementById(ZIP_FILE_NAME_FIELD_ID + "2");
+    if (label2) {
+        label2.textContent = name ? 'Zip file: ' + name : '';
+        label2.title = name || '';
+    }
 }
 
 // Restores the name saved by the last processed zip.
@@ -22,71 +32,78 @@ function restoreZipFileName() {
     setZipFileName(localStorage.getItem(ZIP_FILE_NAME_FIELD_ID) || '');
 }
 
-function parseZipFile(event) {
+// Finder adds a __MACOSX/ folder and "._name" resource forks to zips made on a
+// Mac. They carry the real files' extensions but hold no chat text or image.
+function isJunkZipEntry(path) {
+    return /(^|\/)__MACOSX\//.test(path) || /(^|\/)\._/.test(path);
+}
+
+/**
+ * The chat text and images in one WhatsApp export zip. Each image gets its
+ * object URL here, once, so showing the same zip again does not make another.
+ */
+function readZipExport(zip) {
+    const texts = [];
+    const images = [];
+    zip.forEach(function (relativePath, zipEntry) {
+        if (zipEntry.dir || isJunkZipEntry(relativePath)) return;
+        if (zipEntry.name.endsWith('.txt')) {
+            texts.push(zipEntry.async('string'));
+        } else if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(zipEntry.name)) {
+            images.push(zipEntry.async('blob').then(function (blob) {
+                return { name: zipEntry.name.toUpperCase(), blob: blob, url: URL.createObjectURL(blob) };
+            }));
+        }
+    });
+    return Promise.all([Promise.all(texts), Promise.all(images)]).then(function ([textValues, imageValues]) {
+        return { texts: textValues, images: imageValues };
+    });
+}
+
+// Points the image lookups at one zip's images, and converts them for OCR.
+function useZipImages(images) {
     imageMap.clear();
-    const file = document.getElementById('zipInput').files[0];
-    if (file) {
-        // Show extension dir name
-        console.log('Selected zip file:', file.name);
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const arrayBuffer = e.target.result;
-            JSZip.loadAsync(arrayBuffer).then(function (zip) {
-                let allTextPromises = [];
-                let imageFiles = [];
-
-                zip.forEach(function (relativePath, zipEntry) {
-                    if (zipEntry.name.endsWith('.txt')) {
-                        const textPromise = zipEntry.async('string').then(function (fileData) {
-                            return fileData;
-                        });
-                        allTextPromises.push(textPromise);
-                    } else if (/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(zipEntry.name)) {
-                        // Collect image files
-                        imageFiles.push({
-                            name: zipEntry.name,
-                            zipEntry: zipEntry
-                        });
-                        const imagePromise = zipEntry.async("blob").then(function (blob) {
-                            const url = URL.createObjectURL(blob);
-                            imageMap.set(zipEntry.name.toUpperCase(), url);
-
-                            // convert for OCR
-                            blobToBase64(blob).then(function (base64) {
-                                visionRequests.set(zipEntry.name.toUpperCase(), {
-                                    image: { content: base64 },
-                                    features: [{ type: "TEXT_DETECTION" }]
-                                });
-                                // requestMeta.push(zipEntry.name);
-                            }).catch(function (error) {
-                                console.error('Error converting blob to base64:', error);
-                            });
-                        });
-                        allTextPromises.push(imagePromise);
-                    }
-                });
-
-                // Extract and save images
-                //extractAndSaveImages(imageFiles);
-
-                Promise.all(allTextPromises).then(function (allTexts) {
-                    //imageToTextRequest();
-                    document.getElementById('inputData').value = allTexts.join('\n');
-                    // Save the input in the local storage
-                    localStorage.setItem('inputData', document.getElementById('inputData').value);
-                    // Keep the zip name alongside the content it produced
-                    localStorage.setItem(ZIP_FILE_NAME_FIELD_ID, file.name);
-                    setZipFileName(file.name);
-                    //localStorage.setItem('imageMap', JSON.stringify(Array.from(imageMap.entries())));
-                    //localStorage.setItem('visionRequests', JSON.stringify(Array.from(visionRequests.entries())));
-                    parseMessages();
-                    generateTable();
-                    generateFinalOutput();
-                });
+    visionRequests.clear();
+    images.forEach(function (image) {
+        imageMap.set(image.name, image.url);
+        blobToBase64(image.blob).then(function (base64) {
+            visionRequests.set(image.name, {
+                image: { content: base64 },
+                features: [{ type: "TEXT_DETECTION" }]
             });
-        };
-        reader.readAsArrayBuffer(file);
-    }
+        }).catch(function (error) {
+            console.error('Error converting blob to base64:', error);
+        });
+    });
+}
+
+// Puts one zip's content through the page: input, validation and final output.
+function showZipExport(name, contents) {
+    useZipImages(contents.images);
+    resetEntryDate();
+    document.getElementById('inputData').value = contents.texts.join('\n');
+    // Save the input in the local storage
+    localStorage.setItem('inputData', document.getElementById('inputData').value);
+    // Keep the zip name alongside the content it produced
+    localStorage.setItem(ZIP_FILE_NAME_FIELD_ID, name);
+    setZipFileName(name);
+    parseMessages();
+    generateTable();
+    generateFinalOutput();
+}
+
+function parseZipFile(event) {
+    const file = document.getElementById('zipInput').files[0];
+    if (!file) return;
+    console.log('Selected zip file:', file.name);
+    file.arrayBuffer()
+        .then(buffer => JSZip.loadAsync(buffer))
+        .then(readZipExport)
+        .then(contents => showZipExport(file.name, contents))
+        .catch(error => {
+            console.error('Error reading zip file:', error);
+            showErrorMessages(['Could not read ' + file.name + ': ' + error.message]);
+        });
 }
 
 /**

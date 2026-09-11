@@ -36,3 +36,15 @@ function extractWords(page) {
     });
     return values;
 }
+
+const smallCaps = {
+  'ᴀ': 'a', 'ʙ': 'b', 'ᴄ': 'c', 'ᴅ': 'd', 'ᴇ': 'e',
+  'ꜰ': 'f', 'ɢ': 'g', 'ʜ': 'h', 'ɪ': 'i', 'ᴊ': 'j',
+  'ᴋ': 'k', 'ʟ': 'l', 'ᴍ': 'm', 'ɴ': 'n', 'ᴏ': 'o',
+  'ᴘ': 'p', 'ʀ': 'r', 'ᴛ': 't', 'ᴜ': 'u', 'ᴠ': 'v',
+  'ᴡ': 'w', 'ʏ': 'y', 'ᴢ': 'z'
+};
+
+function toNormalText(str) {
+  return [...str].map(c => smallCaps[c] || c).join('');
+}
