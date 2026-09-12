@@ -15,16 +15,6 @@ function setZipFileName(name) {
         label.textContent = name ? 'Zip file: ' + name : '';
         label.title = name || '';
     }
-    const label1 = document.getElementById(ZIP_FILE_NAME_FIELD_ID + "1");
-    if (label1) {
-        label1.textContent = name ? 'Zip file: ' + name : '';
-        label1.title = name || '';
-    }
-    const label2 = document.getElementById(ZIP_FILE_NAME_FIELD_ID + "2");
-    if (label2) {
-        label2.textContent = name ? 'Zip file: ' + name : '';
-        label2.title = name || '';
-    }
 }
 
 // Restores the name saved by the last processed zip.

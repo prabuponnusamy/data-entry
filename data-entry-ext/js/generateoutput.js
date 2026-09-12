@@ -77,8 +77,8 @@ function renderFinalOutput(messageGroup, label, hasError) {
                     <div class="info-text">${key} - ${sublistIdx + 1}) ${sublist.length}/${values.length} entries</div>
                     ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                     <div>
-                        ${hasError ? '' : `<button class="fill-btn" data-action="fill" data-target="${key.substring(0, 5)}" data-targetkey="${key}" style="margin-bottom: 5px; padding: 4px 8px; font-size: 11px;">Fill</button>
-                        <button class="copy-btn" data-action="copy" style="margin-bottom: 5px; padding: 4px 8px; font-size: 11px;">Copy</button>`}
+                        ${hasError ? '' : `<button class="fill-btn" data-action="fill" data-target="${key.substring(0, 5)}" data-targetkey="${key}">Fill</button>
+                        <button class="copy-btn" data-action="copy">Copy</button>`}
                         <textarea name="formatted-output" class="output-textarea" placeholder="Formatted output..." rows="20">${sublist.join('\n')}</textarea>
                     </div>
                 </td>

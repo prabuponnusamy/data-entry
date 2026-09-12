@@ -23,6 +23,11 @@ function initializeTabs() {
             if (targetPane) {
                 targetPane.classList.add('active');
             }
+
+            // Start each tab at the top. Instant, not smooth: a message-number
+            // link switches tab and then jumps to its anchor, and a smooth
+            // scroll still running would fight that jump.
+            window.scrollTo(0, 0);
         });
     });
 }

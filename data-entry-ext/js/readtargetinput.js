@@ -125,7 +125,7 @@ async function getAllFields() {
     var optionsHtml;
     for(var i = 0; i < commonFields.length; i++) {
         field = commonFields[i];
-        console.log(field.name)
+        //console.log(field.name)
         if (field.name === "supplier") {
             supplierField = field;
             optionsHtml = field.options.map(option => `
@@ -135,7 +135,7 @@ async function getAllFields() {
     }
     if (optionsHtml) {
         var supplierHtml = `
-            <select id="supplier" class="medium-input">
+            <select id="supplier" class="supplier-select" title="Select the supplier for data entry.">
                 ${optionsHtml}
             </select>
         `;

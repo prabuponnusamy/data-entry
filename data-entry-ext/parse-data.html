@@ -10,11 +10,20 @@
 
 <body>
     <div class="container header-section float-section"> <!-- Add borders-->
+        <div class="header-status-bar">
+            <div class="header-status-left">
+                <label for="inputData" id="zipFileName" class="zip-file-name"></label>
+            </div>
+            <div class="header-status-right">
+                <span id="signInStatus" class="sign-in-status"></span>
+            </div>
+        </div>
         <div id="buttonGroupSection" class="button-group">
             <div>
                 <input type="file" id="zipInput" accept=".zip" class="btn-sm">
                 <button id="processZipBtn" class="btn btn-primary btn-sm">Process</button>
-                <input type="file" id="zipOfZipsInput" accept=".zip" title="A zip holding several WhatsApp export zips" class="hide_ele">
+                <input type="file" id="zipOfZipsInput" accept=".zip" title="A zip holding several WhatsApp export zips"
+                    class="hide_ele">
                 <button id="processZipOfZipsBtn" class="btn btn-primary btn-sm hide_ele">Process Zip of Zips</button>
                 <button id="parseInputBtn" class="btn btn-primary btn-sm hide_ele">Parse Data</button>
                 <button id="processBtn" class="btn btn-primary btn-sm hide_ele">Process Data</button>
@@ -22,163 +31,190 @@
                 <button id="saveInputDataBtn" class="btn btn-secondary btn-sm">Save</button>
             </div>
             <a href="#status-message" class="btn btn-primary btn-sm" title="Go to Top">Top</a>
-        <!--</div>
+            <!--</div>
         <div id="buttonGroupSection" class="button-group">-->
             <!-- Convert the below to dropdown  -->
-            <select id="websiteBaseUrlSelect">
-                <option value="">Select an option</option>
-                <optgroup label="Anushuya">
-                    <option value="https://anushuya.com/employee/drawOne/">Anushuya Draw1</option>
-                    <option value="https://anushuya.com/employee/drawTwo/">Anushuya Draw2</option>
-                    <option value="https://anushuya.com/employee/drawThree/">Anushuya Draw3</option>
-                </optgroup>
-                <optgroup label="Abidear">
-                    <option value="https://abidear.com/employee/drawOne/">Abidear Draw1</option>
-                    <option value="https://abidear.com/employee/drawTwo/">Abidear Draw2</option>
-                    <option value="https://abidear.com/employee/drawThree/">Abidear Draw3</option>
-                </optgroup>
-                <optgroup label="Deeksitha">
-                    <option value="https://deeksitha.com/employee/draw/1/">Deeksitha Draw1</option>
-                    <option value="https://deeksitha.com/employee/draw/2/">Deeksitha Draw2</option>
-                    <option value="https://deeksitha.com/employee/draw/3/">Deeksitha Draw3</option>
-                </optgroup>
-                <optgroup label="Goa G Time">
-                    <option value="https://goagtime.com/employee/drawOne/">Goa G Time Draw1</option>
-                    <option value="https://goagtime.com/employee/drawTwo/">Goa G Time Draw2</option>
-                    <option value="https://goagtime.com/employee/drawThree/">Goa G Time Draw3</option>
-                </optgroup>
-                <optgroup label="KL Poorna">
-                    <option value="https://klpoorna.com/employee/drawOne/">KL Poorna Draw1</option>
-                    <option value="https://klpoorna.com/employee/drawTwo/">KL Poorna Draw2</option>
-                    <option value="https://klpoorna.com/employee/drawThree/">KL Poorna Draw3</option>
-                </optgroup>
-                <optgroup label="Others">
-                    <option value="https://orangepblw.com/employee/order/">Orangepblw</option>
-                    <option value="https://prksha.com/employee/draw/1/">Prksha Draw1</option>
-                    <option value="https://rajasree.org/employee/order/">Rajasree</option>
-                    <option value="https://sameeraa.com/employee/order/">Sameeraa</option>
-                </optgroup>
-            </select>
-            <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee"
-                class="websiteBaseUrl large-input-v3 hide_ele" title="Enter the base URL of the website for data entry.">
-            <span id="signInStatus" class="sign-in-status"></span>
+            <div>
+                <select id="websiteBaseUrlSelect" class="website-select" title="Select the website for data entry.">
+
+                    <option value="">Select Website</option>
+                    <optgroup label="Anushuya">
+                        <option value="https://anushuya.com/employee/drawOne/">Anushuya Draw1</option>
+                        <option value="https://anushuya.com/employee/drawTwo/">Anushuya Draw2</option>
+                        <option value="https://anushuya.com/employee/drawThree/">Anushuya Draw3</option>
+                    </optgroup>
+                    <optgroup label="Abidear">
+                        <option value="https://abidear.com/employee/drawOne/">Abidear Draw1</option>
+                        <option value="https://abidear.com/employee/drawTwo/">Abidear Draw2</option>
+                        <option value="https://abidear.com/employee/drawThree/">Abidear Draw3</option>
+                    </optgroup>
+                    <optgroup label="Deeksitha">
+                        <option value="https://deeksitha.com/employee/draw/1/">Deeksitha Draw1</option>
+                        <option value="https://deeksitha.com/employee/draw/2/">Deeksitha Draw2</option>
+                        <option value="https://deeksitha.com/employee/draw/3/">Deeksitha Draw3</option>
+                    </optgroup>
+                    <optgroup label="Goa G Time">
+                        <option value="https://goagtime.com/employee/drawOne/">Goa G Time Draw1</option>
+                        <option value="https://goagtime.com/employee/drawTwo/">Goa G Time Draw2</option>
+                        <option value="https://goagtime.com/employee/drawThree/">Goa G Time Draw3</option>
+                    </optgroup>
+                    <optgroup label="KL Poorna">
+                        <option value="https://klpoorna.com/employee/drawOne/">KL Poorna Draw1</option>
+                        <option value="https://klpoorna.com/employee/drawTwo/">KL Poorna Draw2</option>
+                        <option value="https://klpoorna.com/employee/drawThree/">KL Poorna Draw3</option>
+                    </optgroup>
+                    <optgroup label="Others">
+                        <option value="https://orangepblw.com/employee/order/">Orangepblw</option>
+                        <option value="https://prksha.com/employee/draw/1/">Prksha Draw1</option>
+                        <option value="https://rajasree.org/employee/order/">Rajasree</option>
+                        <option value="https://sameeraa.com/employee/order/">Sameeraa</option>
+                    </optgroup>
+                </select>
+                <input type="text" id="websiteBaseUrlInput" placeholder="https://abidear.com/employee"
+                    class="websiteBaseUrl large-input-v3 hide_ele"
+                    title="Enter the base URL of the website for data entry.">
+            </div>
             <div class="right-group">
                 <div id="target-page-input">
                 </div>
-                <input type="text" id="supplierId" placeholder="Supplier Name" class="large-input hide_ele"
+                <input type="text" id="supplierId" placeholder="Supplier" class="target-input"
                     title="Supplier name to be used in the target page. Read from the messages; type over it to change.">
-                <input type="text" id="entryDate" placeholder="DD-MM-YYYY" class="date-input"
+                <input type="text" id="entryDate" placeholder="DD-MM-YYYY" class="target-input"
                     title="Date put into the site's date box. Read from the messages; type over it to change.">
                 <script src="js/entrydate.js"></script>
                 <div class="checkbox-group">
-                    <input type="checkbox" id="autoSubmitCheckbox" class="form-check-input">
-                    <label for="autoSubmitCheckbox">Auto Submit</label>
+                    <input type="checkbox" id="autoSubmitCheckbox" class="form-check-input autosubmit-check"
+                        title="If checked, the extension will automatically submit the form after filling it.">
+                    <label for="autoSubmitCheckbox" class="autosubmit-check-label">Auto Submit</label>
                 </div>
             </div>
         </div>
-        <div id="errorLinks" class="message-links"></div>
-        <ul class="tab-nav" id="myTab" role="tablist"> 
-            
-            <button class="tab-button active" id="input-tab"
-                data-tab="input-tab-pane" type="button" role="tab">Input data</button> 
-                
-                <button class="tab-button"
-                id="validate-tab" data-tab="validate-tab-pane" type="button" role="tab">Validate data</button> 
-                
-                <button
-                class="tab-button" id="finaloutput-tab" data-tab="finaloutput-tab-pane" type="button" role="tab">Final
-                content</button> 
-                <!--
+        <ul class="tab-nav" id="myTab" role="tablist">
+
+            <button class="tab-button active" id="input-tab" data-tab="input-tab-pane" type="button" role="tab">Input
+                data</button>
+
+            <button class="tab-button" id="validate-tab" data-tab="validate-tab-pane" type="button" role="tab">Validate
+                data</button>
+
+            <button class="tab-button" id="finaloutput-tab" data-tab="finaloutput-tab-pane" type="button"
+                role="tab">Final
+                content</button>
+            <!--
                 <button class="tab-button hide-ele" id="zipbatch-tab" data-tab="zipbatch-tab-pane" type="button"
                 role="tab">Zip batch</button>-->
-            
-            </ul>
+        </ul>
     </div>
+    <!-- Floating rail on the right: one numbered link per message, errors in red. -->
+    <div id="errorLinks" class="message-links"></div>
     <div class="container content-section">
         <div class="status-message" id="status-message">Welcome</div>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane active" id="input-tab-pane" role="tabpanel">
                 <div class="row">
-                    <div class="col"> <label for="inputData">Input Data <a href="#" class="copy-whatsapp"
+                    <div class="col"> 
+                        <label for="inputData">Input Data <a href="#" class="copy-whatsapp"
                                 data-action="copy-whatsapp" title="Copy">Copy</a></label>
-                        <label for="inputData" id="zipFileName" class="zip-file-name"></label> <textarea id="inputData"
+                        <textarea id="inputData"
                             class="input-textarea" rows="25" placeholder="Paste WhatsApp data here..."></textarea>
                     </div>
                     <div class="col"> <label for="outputData">Output Data</label> <textarea id="outputData"
                             class="output-area" rows="25" placeholder="Paste copilot generated data here..."></textarea>
                     </div>
-                    <div class="col">
-                        <label for="dryRunCheckbox"><input type="checkbox" id="dryRunCheckbox" class="normal-label"> Dry
-                            Run</label>
-                        <label for="fillBannerCheckbox"><input type="checkbox" id="fillBannerCheckbox"
-                                class="normal-label"> Show Fill Banner</label>
-                        <label for="googleVisionApiKey">Google Vision API Key</label> <input type="password"
-                            id="googleVisionApiKey" class="form-control" placeholder="Google Vision API Key for OCR">
-                        <label for="outputData">Replace amount -
-                            (Example:1DTkt=1dTkt30,1DTkt20=1DTkt30)</label> <textarea id="amountMapping"
-                            class="output-area" rows="3"
-                            placeholder="Amount mapping 1DTkt=1dTkt30,1DTkt20=1DTkt30"></textarea>
-                        <p id="available-amount-keys" class="available-amount-keys"></p>
-                        <p class="margin-top-small section-title"><b>Record limit for each dimension (default 100):</b>
-                        </p> <label class="normal-label">1D: <input type="text" id="1dRecordLimit" name="recordLimit"
-                                class="small-input" placeholder="1D record limit (default 50)" value="50"></label>
-                        <label class="normal-label">2D: <input type="text" id="2dRecordLimit" name="recordLimit"
-                                class="small-input" placeholder="2D record limit (default 50)" value="50"></label>
-                        <label class="normal-label">3D: <input type="text" id="3dRecordLimit" name="recordLimit"
-                                class="small-input" placeholder="3D record limit (default 100)" value="100"></label>
-                        <label class="normal-label">4D: <input type="text" id="4dRecordLimit" name="recordLimit"
-                                class="small-input" placeholder="4D record limit (default 40)" value="40"></label>
-                        <label class="normal-label">5D: <input type="text" id="5dRecordLimit" name="recordLimit"
-                                class="small-input" placeholder="5D record limit (default 40)" value="40"></label>
-                        <!-- Winnning numbers- Header: Winning Numbers. Fields : 1D-A, 1D-B, 1D-C, 2D-AB. 2D-AC, 2D-BC, 3D, 4D, 5D -->
-                        <!-- Winnning numbers- Header: Winning Numbers. Fields : 1D-A, 1D-B, 1D-C, 2D-AB. 2D-AC, 2D-BC, 3D, 4D, 5D -->
-                        <p class="margin-top-small section-title"><b>Winning number</b></p>
+                    <!-- Settings: grouped sections split by thin rules. JS reads these by id only. -->
+                    <div class="col settings-panel">
+                        <section class="settings-group">
+                            <h3 class="settings-title">Run options</h3>
+                            <div class="settings-row">
+                                <label class="settings-check" for="dryRunCheckbox">
+                                    <input type="checkbox" id="dryRunCheckbox"> Dry Run</label>
+                                <label class="settings-check" for="fillBannerCheckbox">
+                                    <input type="checkbox" id="fillBannerCheckbox"> Show Fill Banner</label>
+                            </div>
+                        </section>
 
-                        <input type="text" id="lotteryWinningNumber" class="form-control large-input"
-                            placeholder="Winning number">
-                        <p class="margin-top-small section-title"><b>Winning number: 1D</b></p>
-                        <label class="normal-label">1D-A: <input type="text" id="1dAWinningNumbers"
-                                class="form-control small-input" disabled length="1">
-                        </label>
-                        <label class="normal-label">1D-B: <input type="text" id="1dBWinningNumbers"
-                                class="form-control small-input" length="1" disabled>
-                        </label>
-                        <label class="normal-label">1D-C: <input type="text" id="1dCWinningNumbers"
-                                class="form-control small-input" length="1" disabled>
-                        </label>
-                        <p class="margin-top-small section-title"><b>Winning number: 2D</b></p>
-                        <label class="normal-label">2D-AB: <input type="text" id="2dABWinningNumbers"
-                                class="form-control small-input" length="2" disabled>
-                        </label>
-                        <label class="normal-label">2D-AC: <input type="text" id="2dACWinningNumbers"
-                                class="form-control small-input" length="2" disabled>
-                        </label>
-                        <label class="normal-label">2D-BC: <input type="text" id="2dBCWinningNumbers"
-                                class="form-control small-input" length="2" disabled>
-                        </label>
-                        <p class="margin-top-small section-title"><b>Winning number: 3D/4D/5D</b></p>
-                        <label class="normal-label">3D: <input type="text" id="3dWinningNumbers"
-                                class="form-control small-input" length="3" disabled>
-                        </label>
-                        <label class="normal-label">4D: <input type="text" id="4dWinningNumbers"
-                                class="form-control small-input" length="4" disabled>
-                        </label>
-                        <label class="normal-label">5D: <input type="text" id="5dWinningNumbers"
-                                class="form-control medium-input" length="5" disabled>
-                        </label>
-                        <label for="deleteText">Delete text</label> <textarea id="deleteText" class="output-area"
-                            rows="3" placeholder="Text to delete each in new line"></textarea>
-                        <label for="replaceText">Replace text</label> <textarea id="replaceText" class="output-area"
-                            rows="3" placeholder="actVal1=repVal1,actVal2=repVal2"></textarea>
+                        <section class="settings-group">
+                            <h3 class="settings-title"><label for="googleVisionApiKey">Google Vision API Key</label></h3>
+                            <input type="password" id="googleVisionApiKey" class="form-control"
+                                placeholder="Google Vision API Key for OCR">
+                        </section>
+
+                        <section class="settings-group">
+                            <h3 class="settings-title"><label for="amountMapping">Replace amount</label>
+                                <span class="settings-hint">e.g. 1DTkt=1dTkt30,1DTkt20=1DTkt30</span></h3>
+                            <textarea id="amountMapping" class="output-area" rows="3"
+                                placeholder="Amount mapping 1DTkt=1dTkt30,1DTkt20=1DTkt30"></textarea>
+                            <p id="available-amount-keys" class="available-amount-keys"></p>
+                        </section>
+
+                        <section class="settings-group">
+                            <h3 class="settings-title">Record limit per dimension
+                                <span class="settings-hint">default 100</span></h3>
+                            <div class="settings-row settings-row-grid">
+                                <label class="settings-field">1D <input type="text" id="1dRecordLimit" name="recordLimit"
+                                        class="small-input" placeholder="1D record limit (default 50)" value="50"></label>
+                                <label class="settings-field">2D <input type="text" id="2dRecordLimit" name="recordLimit"
+                                        class="small-input" placeholder="2D record limit (default 50)" value="50"></label>
+                                <label class="settings-field">3D <input type="text" id="3dRecordLimit" name="recordLimit"
+                                        class="small-input" placeholder="3D record limit (default 100)" value="100"></label>
+                                <label class="settings-field">4D <input type="text" id="4dRecordLimit" name="recordLimit"
+                                        class="small-input" placeholder="4D record limit (default 40)" value="40"></label>
+                                <label class="settings-field">5D <input type="text" id="5dRecordLimit" name="recordLimit"
+                                        class="small-input" placeholder="5D record limit (default 40)" value="40"></label>
+                            </div>
+                        </section>
+
+                        <!-- Winning numbers. Fields: 1D-A, 1D-B, 1D-C, 2D-AB, 2D-AC, 2D-BC, 3D, 4D, 5D -->
+                        <section class="settings-group">
+                            <h3 class="settings-title"><label for="lotteryWinningNumber">Winning number</label></h3>
+                            <input type="text" id="lotteryWinningNumber" class="form-control large-input"
+                                placeholder="Winning number">
+                            <div class="settings-row settings-row-labelled">
+                                <span class="settings-row-label">1D</span>
+                                <label class="settings-field">1D-A <input type="text" id="1dAWinningNumbers"
+                                        class="form-control small-input" disabled length="1"></label>
+                                <label class="settings-field">1D-B <input type="text" id="1dBWinningNumbers"
+                                        class="form-control small-input" length="1" disabled></label>
+                                <label class="settings-field">1D-C <input type="text" id="1dCWinningNumbers"
+                                        class="form-control small-input" length="1" disabled></label>
+                            </div>
+                            <div class="settings-row settings-row-labelled">
+                                <span class="settings-row-label">2D</span>
+                                <label class="settings-field">2D-AB <input type="text" id="2dABWinningNumbers"
+                                        class="form-control small-input" length="2" disabled></label>
+                                <label class="settings-field">2D-AC <input type="text" id="2dACWinningNumbers"
+                                        class="form-control small-input" length="2" disabled></label>
+                                <label class="settings-field">2D-BC <input type="text" id="2dBCWinningNumbers"
+                                        class="form-control small-input" length="2" disabled></label>
+                            </div>
+                            <div class="settings-row settings-row-labelled">
+                                <span class="settings-row-label">3D/4D/5D</span>
+                                <label class="settings-field">3D <input type="text" id="3dWinningNumbers"
+                                        class="form-control small-input" length="3" disabled></label>
+                                <label class="settings-field">4D <input type="text" id="4dWinningNumbers"
+                                        class="form-control small-input" length="4" disabled></label>
+                                <label class="settings-field">5D <input type="text" id="5dWinningNumbers"
+                                        class="form-control medium-input" length="5" disabled></label>
+                            </div>
+                        </section>
+
+                        <section class="settings-group">
+                            <h3 class="settings-title"><label for="deleteText">Delete text</label></h3>
+                            <textarea id="deleteText" class="output-area" rows="3"
+                                placeholder="Text to delete each in new line"></textarea>
+                            <h3 class="settings-title settings-title-spaced"><label for="replaceText">Replace text</label></h3>
+                            <textarea id="replaceText" class="output-area" rows="3"
+                                placeholder="actVal1=repVal1,actVal2=repVal2"></textarea>
+                        </section>
                     </div>
                 </div>
             </div>
             <div class="tab-pane" id="validate-tab-pane" role="tabpanel">
-                <div class="info-text">Data generated for the validation. <label for="inputData" id="zipFileName1" class="zip-file-name"></label></div>
+                <div class="info-text">Data generated for the validation. <label for="inputData" id="zipFileName1"
+                        class="zip-file-name"></label></div>
                 <div id="tableContainer"></div>
             </div>
             <div class="tab-pane" id="finaloutput-tab-pane" role="tabpanel">
-                <div class="info-text">Data generated for data entry. <label for="inputData" id="zipFileName2" class="zip-file-name"></label></div>
                 <div id="finalOutputContent"></div>
             </div>
             <div class="tab-pane" id="zipbatch-tab-pane" role="tabpanel">

@@ -54,14 +54,14 @@ function openNewTabWithData(actionEl) {
     var debugMode = document.getElementById("debugModeCheckbox")?.checked;
 
     console.log("Data to fill:\n" + data + "\n\nSupplier: " + supplierValueLabel + "\n\nURL: " + url + "\n\nTarget: " + target + "\n\nTarget Tkt: " + targetkey + "\n\nAuto Submit: " + autoSubmit);
-    if(debugMode) {
+    if (debugMode) {
         confirmation = confirm("Do you want to proceed with filling the data?");
         if (!confirmation) {
             alert("Data filling cancelled by user.");
             return;
         }
     }
-    
+
     if (!data || data.trim() === '') {
         alert('No data to fill. Please enter some data to fill.');
         return;
@@ -98,6 +98,8 @@ function reportSignInStatus() {
     if (!status) return;
 
     const url = buildFillUrl(TARGET_3D_TKT);
+    const base = (document.getElementById('websiteBaseUrlInput')?.value || '').trim();
+
     if (!url) {
         status.innerHTML = '';
         status.className = 'sign-in-status';
@@ -110,11 +112,13 @@ function reportSignInStatus() {
         if (chrome.runtime.lastError || !response) {
             status.innerHTML = '';
             status.className = 'sign-in-status';
+            resetTargetWebsiteDetailsFromHeader();
             return;
         }
         // replace the content after employee/ and append login - employee/login
-        status.innerHTML = response.signedIn ? '✓ Signed in' : '✗ Not signed in — log in first. <a href="' + url.replace(/\/employee\/.*/, '/employee/login') + '" target="_blank">Log in</a>';
+        status.innerHTML = response.signedIn ? '✓ ' + base : '✗ Not signed in — log in first. <a href="' + url.replace(/\/employee\/.*/, '/employee/login') + '" target="_blank">Log in</a>';
         status.className = 'sign-in-status ' + (response.signedIn ? 'ok' : 'bad');
+        if (!response.signedIn) resetTargetWebsiteDetailsFromHeader();
     });
 }
 
@@ -166,6 +170,19 @@ function fillConfirmText(blocks, supplierValueLabel, autoSubmit, dryRun, entryDa
         lines.push('AUTO-SUBMIT IS ON — each page is saved once its boxes check out.');
     }
     return lines.join('\n');
+}
+
+function resetTargetWebsiteDetailsFromHeader() {
+    // Select
+    const websiteBaseUrlSelect = document.getElementById('websiteBaseUrlSelect');
+    const baseUrlInput = document.getElementById('websiteBaseUrlInput');
+    // textbox
+    const supplierSelect = document.getElementById('supplierId');
+    const targetWebsiteInputDiv = document.getElementById('target-page-input');
+    websiteBaseUrlSelect.value = '';
+    baseUrlInput.value = '';
+    supplierSelect.value = '';
+    targetWebsiteInputDiv.innerHTML = '';
 }
 
 /**
@@ -418,6 +435,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Message number links (#original-msg-N) point into the Validate tab.
+        // Switch to it first, and unhide the row if "show only errors" hid it,
+        // so the anchor jump that follows has something visible to scroll to.
+        const msgLink = e.target.closest('a[href^="#original-msg-"]');
+        if (msgLink) {
+            document.getElementById('validate-tab')?.click();
+            const target = document.getElementById(msgLink.getAttribute('href').slice(1));
+            const row = target?.closest('tr');
+            if (row) row.style.display = '';
+            return;
+        }
+
         // fallback: delete row button (keeps existing class-based behavior)
         const delBtn = e.target.closest('button.delete-row-btn');
         if (delBtn) {
@@ -463,6 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('websiteBaseUrlInput').value = selectedValue;
         getAllFields();
         reportSignInStatus();
+
     });
 
     // Store autoSubmitCheckbox value in local storage
