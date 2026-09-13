@@ -262,10 +262,10 @@ function generateFinalOutput() {
     document.getElementById('available-amount-keys').innerHTML = '<b>Available keys for amount mapping: </b><i>' + keys.join(' , ') + '</i>';
     if (errorMessages.length > 0) {
         // Add total records as first message
-        errorMessages.unshift('Total records: ' + totalRecords + '. Please fix the following errors:');
-        showErrorMessages(errorMessages);
+        //errorMessages.unshift('Total records: ' + totalRecords + '. Please fix the following errors:');
+        showErrorMessages('Total records: ' + totalRecords + '. Please fix the errors.', errorMessages);
     } else {
-        showSuccessMessages(['Total records: ' + totalRecords + '. Final output generated successfully!']);
+        showSuccessMessages('Total records: ' + totalRecords + '. Final output generated successfully!', []);
     }
     document.getElementById('errorLinks').innerHTML = links.join('');
     refreshEntryDate();

@@ -422,7 +422,7 @@ button:disabled {
     list-style: none;
 }
 
-.status-message li + li {
+.status-message li+li {
     margin-top: 4px;
 }
 
@@ -584,13 +584,13 @@ textarea.warning-output {
 }
 
 /* Thin dividers between control groups: files | website | supplier & date. */
-#buttonGroupSection > div:has(#websiteBaseUrlSelect),
-#buttonGroupSection > .right-group {
+#buttonGroupSection>div:has(#websiteBaseUrlSelect),
+#buttonGroupSection>.right-group {
     padding-left: 16px;
     border-left: 1px solid #e0e0e0;
 }
 
-#buttonGroupSection > div:not(.hide_ele),
+#buttonGroupSection>div:not(.hide_ele),
 #target-page-input {
     display: flex;
     align-items: center;
@@ -695,6 +695,25 @@ textarea.warning-output {
     color: #37474f;
     font-size: 13px;
     line-height: 1.5;
+}
+
+.message-count-status {
+    font-weight: 500;
+    font-size: 12px;
+    color: #616366;
+    word-break: break-all;
+    background: #81c784;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    padding: 3px 10px;
+    width: fit-content;
+    margin-left: 16px;
+}
+
+.message-count-status.error {
+    background: #ffebee;
+    border-color: #ef9a9a;
+    color: #c62828;
 }
 
 /* Nothing generated yet: no empty dashed box. */
@@ -915,7 +934,7 @@ textarea.copied {
     word-break: break-all;
 }
 
-.output-section > .margin-top-small {
+.output-section>.margin-top-small {
     margin: 0 0 4px;
 }
 
@@ -1010,7 +1029,7 @@ textarea.copied {
 }
 
 /* Input tab: Input Data / Output Data titles match the settings titles. */
-#input-tab-pane .col:not(.settings-panel) > label {
+#input-tab-pane .col:not(.settings-panel)>label {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1107,11 +1126,12 @@ input[type="checkbox"].auto {
 .website-select {
     width: 180px;
 }
+
 .supplier-select {
     width: 120px;
 }
 
-.autosubmit-check:checked + .autosubmit-check-label {
+.autosubmit-check:checked+.autosubmit-check-label {
     color: #d25119;
     font-weight: 600;
 }

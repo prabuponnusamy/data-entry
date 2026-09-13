@@ -117,8 +117,8 @@ function showInfoMessages(messages) {
     showMessages(messages, 'info');
 }
 
-function showErrorMessages(messages) {
-    showMessages(messages, 'error');
+function showErrorMessages(header, messages) {
+    showMessages(header, messages, 'error');
 }
 
 function clearMessages() {
@@ -127,22 +127,25 @@ function clearMessages() {
     statusMessageDiv.innerHTML = '';
 }
 
-function showSuccessMessages(messages) {
-    showMessages(messages, 'success');
+function showSuccessMessages(header, messages) {
+    showMessages(header, messages, 'success');
 }
 
-function showMessages(values, classNameValue) {
+function showMessages(header, values, classNameValue) {
     // status-message
-    const statusMessageDiv = document.getElementById('status-message');
-    statusMessageDiv.className = 'status-message';
-    statusMessageDiv.innerHTML = '';
+    const messageCountAndStatus = document.getElementById('messageCountAndStatus');
+    messageCountAndStatus.className = 'message-count-status ' + classNameValue;
+    messageCountAndStatus.innerHTML = header;
+
     if (values.length > 0) {
+        const statusMessageDiv = document.getElementById('status-message');
+        statusMessageDiv.className = 'status-message' + ' ' + classNameValue;
+        statusMessageDiv.innerHTML = '';
         let errorHTML = '<ul>';
         values.forEach(msg => {
             errorHTML += `<li>${msg}</li>`;
         });
         errorHTML += '</ul>';
         statusMessageDiv.innerHTML = errorHTML;
-        statusMessageDiv.classList.add(classNameValue);
     }
 }
