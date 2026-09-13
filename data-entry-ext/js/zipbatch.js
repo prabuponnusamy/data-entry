@@ -138,15 +138,15 @@ async function parseZipOfZips() {
     }
     const button = document.getElementById('processZipOfZipsBtn');
     button.disabled = true;
-    showInfoMessages(['Reading ' + escapeHtml(file.name) + '…']);
+    showInfoMessages('Reading ' + escapeHtml(file.name) + '…');
     try {
         const zips = await collectInnerZips(await JSZip.loadAsync(await file.arrayBuffer()));
         zips.sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true }));
         const firstLoadable = zips.findIndex(zip => !zip.error);
         if (firstLoadable === -1) {
-            showErrorMessages([zips.length === 0
+            showErrorMessages(zips.length === 0
                 ? 'No zip files with chat text or images inside ' + escapeHtml(file.name) + '. Use Process Zip for a single export.'
-                : 'None of the zips inside ' + escapeHtml(file.name) + ' could be opened.']);
+                : 'None of the zips inside ' + escapeHtml(file.name) + ' could be opened.');
             return;
         }
 
@@ -169,7 +169,7 @@ async function parseZipOfZips() {
         document.getElementById('zipbatch-tab').click();
     } catch (error) {
         console.error('Error reading zip of zips:', error);
-        showErrorMessages(['Could not read ' + escapeHtml(file.name) + ': ' + escapeHtml(error.message || error)]);
+        showErrorMessages('Could not read ' + escapeHtml(file.name) + ': ' + escapeHtml(error.message || error));
     } finally {
         button.disabled = false;
     }

@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Store debugModeCheckbox value in local storage
-    document.getElementById('debugModeCheckbox').addEventListener('change', (event) => {
+    document.getElementById('debugModeCheckbox')?.addEventListener('change', (event) => {
         const debugModeValue = event.target.checked;
         localStorage.setItem('debugModeCheckbox', debugModeValue);
     });

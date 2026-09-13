@@ -137,7 +137,7 @@ function generateTable() {
             ${attachmentMediaHtml(imagePath, imageUrl, outputMsg)}
         `;
         // How to set focus on textarea after generating table - set focus on first textarea only
-        tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td>${i + 1} <button class="delete-row-btn">Delete</button></td>
+        tableHTML += `<tr style="display:${show ? 'table-row' : 'none'}"><td><div class="row-index"><span class="row-number-style">${i + 1}</span><button class="delete-row-btn">Delete</button></div></td>
             <td>
                 ${match.length > 0 ? match.map(m => `<span class="lottery-winning-number">🎉 ${m} 🎉</span><br/>`).join('') : ''}
                 <textarea id="original-msg-${i}" name="original-msg" class="original-msg ${match.length > 0 ? 'winning-ticket' : ''}" data-idx="${i}" rows="${inputGroups[i]?.length || 1}">${inputMsg}</textarea>${imgHtml}</td>
@@ -200,7 +200,7 @@ function generateTable() {
             if (imageName) {
                 imageToTextRequest(imageName, btn);
             } else {
-                showErrorMessages(['Image not found for OCR']);
+                showErrorMessages('Image not found for OCR');
             }
         });
     });

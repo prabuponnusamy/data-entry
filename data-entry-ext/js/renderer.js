@@ -113,39 +113,47 @@ function copyInputEditedData() {
 }
 
 
-function showInfoMessages(messages) {
-    showMessages(messages, 'info');
+function showInfoMessages(header, messages = []) {
+    showMessages(header, messages, 'info');
 }
 
-function showErrorMessages(header, messages) {
+function showErrorMessages(header, messages = []) {
     showMessages(header, messages, 'error');
 }
 
+// Unstyled when empty, so no blank tinted bar is left on the page.
 function clearMessages() {
     const statusMessageDiv = document.getElementById('status-message');
-    statusMessageDiv.className = 'status-message';
+    statusMessageDiv.className = '';
     statusMessageDiv.innerHTML = '';
 }
 
-function showSuccessMessages(header, messages) {
+function showSuccessMessages(header, messages = []) {
     showMessages(header, messages, 'success');
 }
 
-function showMessages(header, values, classNameValue) {
-    // status-message
+/**
+ * `header` is the one-line summary shown in the header strip; `values` are the
+ * details listed in the status box. With no details the box is cleared, so a
+ * run that fixed its errors doesn't keep showing the old list.
+ */
+function showMessages(header, values = [], classNameValue) {
     const messageCountAndStatus = document.getElementById('messageCountAndStatus');
-    messageCountAndStatus.className = 'message-count-status ' + classNameValue;
-    messageCountAndStatus.innerHTML = header;
-
-    if (values.length > 0) {
-        const statusMessageDiv = document.getElementById('status-message');
-        statusMessageDiv.className = 'status-message' + ' ' + classNameValue;
-        statusMessageDiv.innerHTML = '';
-        let errorHTML = '<ul>';
-        values.forEach(msg => {
-            errorHTML += `<li>${msg}</li>`;
-        });
-        errorHTML += '</ul>';
-        statusMessageDiv.innerHTML = errorHTML;
+    if (messageCountAndStatus) {
+        messageCountAndStatus.className = 'message-count-status ' + classNameValue;
+        messageCountAndStatus.innerHTML = header;
     }
+
+    if (values.length === 0) {
+        clearMessages();
+        return;
+    }
+    const statusMessageDiv = document.getElementById('status-message');
+    statusMessageDiv.className = 'status-message' + ' ' + classNameValue;
+    let errorHTML = '<ul>';
+    values.forEach(msg => {
+        errorHTML += `<li>${msg}</li>`;
+    });
+    errorHTML += '</ul>';
+    statusMessageDiv.innerHTML = errorHTML;
 }

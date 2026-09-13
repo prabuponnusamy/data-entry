@@ -121,7 +121,7 @@ function parseZipFile(event) {
         .then(contents => showZipExport(file.name, contents))
         .catch(error => {
             console.error('Error reading zip file:', error);
-            showErrorMessages(['Could not read ' + file.name + ': ' + error.message]);
+            showErrorMessages('Could not read ' + file.name + ': ' + error.message);
         });
 }
 
